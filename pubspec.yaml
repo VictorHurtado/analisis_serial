@@ -1,0 +1,26 @@
+name: MatrixScanSimpleSample
+description: Very simple sample which shows how you can highlight barcodes on screen with the Scandit Data Capture SDK.
+
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  scandit_flutter_datacapture_barcode:
+    path: ../../scandit-flutter-datacapture-barcode
+  permission_handler: ^8.0.1
+  flutter_platform_widgets: ^1.1.0
+  cupertino_icons: 1.0.0
+  encrypt: ^5.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
