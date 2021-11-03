@@ -60,7 +60,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
     "4": "A8705DAFCDDE"
   };
 
-  Map<String, List<BarcodeLocation>> matrixBarcodes = {};
+  Map<String, List<String>> matrixBarcodes = {};
 
   _MatrixScanScreenState(this._context);
 
@@ -195,23 +195,10 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
           trackedBarcode.location.topLeft.x >= pivot.location["x"] - tolerance) {
         print(
             "este es el pivote: ${pivot.toMap()} y este es el valor ${trackedBarcode.location.topLeft.toMap()}");
-        verifySortInColumn(trackedBarcode, pivot.type);
+        if (!matrixBarcodes[pivot.type]!.contains(trackedBarcode.barcode.data))
+          matrixBarcodes[pivot.type]!.add(trackedBarcode.barcode.data!);
         scanResultString.add(trackedBarcode.barcode.data ?? '');
       }
-    }
-  }
-
-  void verifySortInColumn(TrackedBarcode trackedBarcode, String pivotType) {
-    if (trackedBarcode.location.topLeft.y < matrixBarcodes[pivotType]!.first.location['y']) {
-      if (!matrixBarcodes[pivotType]!.contains(trackedBarcode.barcode.data))
-        matrixBarcodes[pivotType]!.insert(
-            0,
-            BarcodeLocation(
-                trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), pivotType));
-    } else {
-      if (!matrixBarcodes[pivotType]!.contains(trackedBarcode.barcode.data))
-        matrixBarcodes[pivotType]!.add(BarcodeLocation(
-            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), pivotType));
     }
   }
 
