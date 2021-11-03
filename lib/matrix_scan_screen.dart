@@ -165,6 +165,9 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       scanResults
           .add(ScanResult(trackedBarcode.barcode.symbology, trackedBarcode.barcode.data ?? ''));
+
+      print(
+          "este es el pivote: ${trackedBarcode.barcode.data} y este es el valor ${trackedBarcode.location.topLeft.toMap()}");
       if (!scanResultString.contains(trackedBarcode.barcode.data)) {
         addAllKeysMatrix();
         extractLocationsOfPivot(trackedBarcode);
