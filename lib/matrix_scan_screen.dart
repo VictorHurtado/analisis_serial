@@ -8,7 +8,7 @@ import 'dart:convert';
 
 import 'package:MatrixScanSimpleSample/barcode_location.dart';
 import 'package:encrypt/encrypt.dart' as EC;
-
+import 'dart:math';
 import 'package:MatrixScanSimpleSample/main.dart';
 import 'package:MatrixScanSimpleSample/scan_result.dart';
 import 'package:flutter/foundation.dart';
@@ -46,21 +46,17 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   bool captured = false;
 
   List<ScanResult> scanResults = [];
-  List<String> scanResultString = [];
+  List<BarcodeLocation> scanResultString = [];
 
   //creación de una matriz con  scandit
 
-  final double tolerance = 20;
-
+  final double tolerance = 1;
+  double media = 0;
+  double standarDesviation = 0;
+  List<BarcodeLocation> resto = [];
   List<BarcodeLocation> pivots = [];
-  Map<String, String> configBarcode = {
-    "1": "13C4DG136305747",
-    "2": "A8705DAFCDDC",
-    "3": "A8705DAFCDDD",
-    "4": "A8705DAFCDDE"
-  };
 
-  Map<String, List<BarcodeLocation>> matrixBarcodes = {};
+  Map<double, List<BarcodeLocation>> matrixBarcodes = {};
 
   _MatrixScanScreenState(this._context);
 
@@ -132,7 +128,8 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
               width: double.infinity,
               child: PlatformButton(
                   onPressed: () {
-                    print(" HOLA  ${jsonEncode(matrixBarcodes)}");
+                    executeStaticsstatistical();
+                    sortByColumns();
                   },
                   cupertino: (_, __) => CupertinoButtonData(
                       color: Color(scanditBlue),
@@ -166,63 +163,87 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
       scanResults
           .add(ScanResult(trackedBarcode.barcode.symbology, trackedBarcode.barcode.data ?? ''));
 
-      print(
-          "este es el pivote: ${trackedBarcode.barcode.data} y este es el valor ${trackedBarcode.location.topLeft.toMap()}");
       if (!scanResultString.contains(trackedBarcode.barcode.data)) {
-        addAllKeysMatrix();
-        extractLocationsOfPivot(trackedBarcode);
-        if (pivots.length >= configBarcode.keys.length) {
-          verifyWithPivot(trackedBarcode);
-        }
+        print("/ ${trackedBarcode.barcode.data}-${trackedBarcode.location.topLeft.toMap()}");
+        scanResultString.add(BarcodeLocation(
+            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), 0));
       }
 
       //
     }
   }
 
-  void extractLocationsOfPivot(TrackedBarcode trackedBarcode) {
-    for (var key in configBarcode.keys) {
-      if (configBarcode[key] == trackedBarcode.barcode.data) {
-        pivots.add(BarcodeLocation(
-            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), key));
-        print(pivots.length);
-        return;
-      }
+  void executeStaticsstatistical() {
+    media = calculateAverageY();
+    standarDesviation = calculateStandarDesviation();
+    calculateValueForColumn();
+  }
+
+  double calculateAverageY() {
+    double prom, sum = 0;
+    for (BarcodeLocation barcode in scanResultString) {
+      sum = sum + barcode.location["y"];
+    }
+    prom = sum / scanResultString.length;
+    return prom;
+  }
+
+  double calculateNumerator() {
+    double sum = 0;
+    for (BarcodeLocation barcode in scanResultString) {
+      sum = sum + pow(barcode.location["y"] - media, 2);
+    }
+
+    return sum;
+  }
+
+  double calculateStandarDesviation() {
+    double result = 0;
+    return result = sqrt(calculateNumerator() / scanResultString.length - 1);
+  }
+
+  void calculateValueForColumn() {
+    for (BarcodeLocation barcode in scanResultString) {
+      barcode.type = (barcode.location["y"] / standarDesviation);
     }
   }
 
-  void verifyWithPivot(TrackedBarcode trackedBarcode) {
-    print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toMap()}");
-    for (var pivot in pivots) {
-      if (trackedBarcode.location.topLeft.x <= pivot.location["x"] + tolerance &&
-          trackedBarcode.location.topLeft.x >= pivot.location["x"] - tolerance) {
-        print(
-            "este es el pivote: ${pivot.toMap()} y este es el valor ${trackedBarcode.location.topLeft.toMap()}");
-        verifySortInColumn(trackedBarcode, pivot.type);
-        scanResultString.add(trackedBarcode.barcode.data ?? '');
-      }
-    }
-  }
-
-  void verifySortInColumn(TrackedBarcode trackedBarcode, String pivotType) {
-    if (trackedBarcode.location.topLeft.y < matrixBarcodes[pivotType]!.first.location['y']) {
-      if (!matrixBarcodes[pivotType]!.contains(trackedBarcode.barcode.data))
-        matrixBarcodes[pivotType]!.insert(
-            0,
-            BarcodeLocation(
-                trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), pivotType));
-    } else {
-      if (!matrixBarcodes[pivotType]!.contains(trackedBarcode.barcode.data))
-        matrixBarcodes[pivotType]!.add(BarcodeLocation(
-            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), pivotType));
-    }
-  }
-
-  void addAllKeysMatrix() {
+  void sortByColumns() {
     if (matrixBarcodes.isEmpty) {
-      for (var key in configBarcode.keys) {
-        matrixBarcodes.addAll({key: []});
+      for (BarcodeLocation barcode in scanResultString) {
+        insertIntoColumn(barcode);
       }
+    }
+    printMatrixBarcodes();
+  }
+
+  void printMatrixBarcodes() {
+    for (var key in matrixBarcodes.keys) {
+      print("$key -----------------${matrixBarcodes[key]!.length}");
+
+      for (var barcode in matrixBarcodes[key]!) {
+        print(barcode.barcode);
+      }
+    }
+  }
+
+  void insertIntoColumn(BarcodeLocation barcode) {
+    if (matrixBarcodes.keys.isEmpty) {
+      matrixBarcodes.addAll({
+        barcode.type: [barcode]
+      });
+    } else {
+      for (var pivot in matrixBarcodes.keys) {
+        if (barcode.type <= pivot + tolerance && barcode.type >= pivot - tolerance) {
+          if (!matrixBarcodes[pivot]!.contains(barcode)) {
+            matrixBarcodes[pivot]!.add(barcode);
+          }
+
+          return;
+        }
+      }
+
+      matrixBarcodes[barcode.type] = [barcode];
     }
   }
 
