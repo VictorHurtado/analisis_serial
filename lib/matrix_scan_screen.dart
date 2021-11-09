@@ -60,7 +60,9 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   List<String> resultScan = [];
   List<BarcodeLocation> pivots = [];
 
+
   Map<double, List<BarcodeLocation>> matrixBarcodes = {};
+
 
   _MatrixScanScreenState(this._context);
 
@@ -229,9 +231,8 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
 
       for (var barcode in matrixBarcodes[key]!) {
         print("${barcode.barcode} ${barcode.type.toString()} ");
-      }
-    }
-  }
+
+
 
   void insertIntoColumn(BarcodeLocation barcode) {
     if (matrixBarcodes.keys.isEmpty) {
@@ -259,10 +260,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
         int high = matrixBarcodes[pivot]!.length - 1;
         int low = 0;
         quickSort(matrixBarcodes[pivot]!, low, high);
-      }
-    }
-    printMatrixBarcodes();
-  }
+
 
   @override
   void dispose() {
