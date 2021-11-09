@@ -20,6 +20,8 @@ import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode_tracking.dart';
 import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
 
+import 'package:MatrixScanSimpleSample/modules/auxiliar_modules.dart';
+
 class MatrixScanScreen extends StatefulWidget {
   final String title;
   final String licenseKey;
@@ -49,11 +51,13 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   List<BarcodeLocation> scanResultString = [];
 
   //creación de una matriz con  scandit
-
-  final double tolerance = 1;
+  String forward = "y";
+  String reverse = "x";
+  double sumH = 0;
+  double tolerance = 0.5;
   double media = 0;
   double standarDesviation = 0;
-  List<BarcodeLocation> resto = [];
+  List<String> resultScan = [];
   List<BarcodeLocation> pivots = [];
 
   Map<double, List<BarcodeLocation>> matrixBarcodes = {};
@@ -130,6 +134,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
                   onPressed: () {
                     executeStaticsstatistical();
                     sortByColumns();
+                    calculateRows();
                   },
                   cupertino: (_, __) => CupertinoButtonData(
                       color: Color(scanditBlue),
@@ -162,9 +167,9 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       scanResults
           .add(ScanResult(trackedBarcode.barcode.symbology, trackedBarcode.barcode.data ?? ''));
-
-      if (!scanResultString.contains(trackedBarcode.barcode.data)) {
-        print("/ ${trackedBarcode.barcode.data}-${trackedBarcode.location.topLeft.toMap()}");
+      if (!resultScan.contains(trackedBarcode.barcode.data)) {
+        resultScan.add(trackedBarcode.barcode.data!);
+        updateSumH(trackedBarcode);
         scanResultString.add(BarcodeLocation(
             trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), 0));
       }
@@ -174,37 +179,36 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   }
 
   void executeStaticsstatistical() {
-    media = calculateAverageY();
-    standarDesviation = calculateStandarDesviation();
-    calculateValueForColumn();
+    media = calculateMeanY(scanResultString, reverse);
+    standarDesviation = calculateStandarDesviation(scanResultString, reverse, media);
+    calculateTolerace();
+    calculateValueForColumn(reverse);
   }
 
-  double calculateAverageY() {
-    double prom, sum = 0;
+  // no se puede mover
+  void updateSumH(TrackedBarcode trackedBarcode) {
+    sumH = sumH +
+        (trackedBarcode.location.bottomLeft.y -
+            trackedBarcode
+                .location.topLeft.y); // PILO CAMBIAR EJES MANUALES REVERSE = Y ORIENTATION = X
+  }
+
+  // no se puede mover
+  void calculateTolerace() {
+    tolerance = (standarDesviation / media) * calculateMeanH(sumH, scanResultString);
+    print("Tolerancia2 : $tolerance");
+  }
+
+  //no se puede
+  void calculateValueForColumn(String orientation) {
     for (BarcodeLocation barcode in scanResultString) {
-      sum = sum + barcode.location["y"];
+      barcode.type = (barcode.location[orientation] / standarDesviation);
     }
-    prom = sum / scanResultString.length;
-    return prom;
   }
 
-  double calculateNumerator() {
-    double sum = 0;
-    for (BarcodeLocation barcode in scanResultString) {
-      sum = sum + pow(barcode.location["y"] - media, 2);
-    }
-
-    return sum;
-  }
-
-  double calculateStandarDesviation() {
-    double result = 0;
-    return result = sqrt(calculateNumerator() / scanResultString.length - 1);
-  }
-
-  void calculateValueForColumn() {
-    for (BarcodeLocation barcode in scanResultString) {
-      barcode.type = (barcode.location["y"] / standarDesviation);
+  void printScanResultString() {
+    for (var barcode in scanResultString) {
+      print(" -----------------${barcode.barcode}");
     }
   }
 
@@ -213,6 +217,8 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
       for (BarcodeLocation barcode in scanResultString) {
         insertIntoColumn(barcode);
       }
+    } else {
+      _resetScanResults();
     }
     printMatrixBarcodes();
   }
@@ -222,7 +228,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
       print("$key -----------------${matrixBarcodes[key]!.length}");
 
       for (var barcode in matrixBarcodes[key]!) {
-        print(barcode.barcode);
+        print("${barcode.barcode} ${barcode.type.toString()} ");
       }
     }
   }
@@ -247,6 +253,17 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
     }
   }
 
+  void calculateRows() {
+    if (matrixBarcodes.keys.isNotEmpty) {
+      for (var pivot in matrixBarcodes.keys) {
+        int high = matrixBarcodes[pivot]!.length - 1;
+        int low = 0;
+        quickSort(matrixBarcodes[pivot]!, low, high);
+      }
+    }
+    printMatrixBarcodes();
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
@@ -259,5 +276,12 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
 
   void _resetScanResults() {
     scanResults.clear();
+    matrixBarcodes.clear();
+    scanResultString.clear();
+    resultScan.clear();
+    pivots.clear();
+    media = 0;
+    standarDesviation = 0;
+    sumH = 0;
   }
 }
