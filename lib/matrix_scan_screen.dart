@@ -8,7 +8,7 @@ import 'dart:convert';
 
 import 'package:MatrixScanSimpleSample/barcode_location.dart';
 import 'package:encrypt/encrypt.dart' as EC;
-
+import 'dart:math';
 import 'package:MatrixScanSimpleSample/main.dart';
 import 'package:MatrixScanSimpleSample/scan_result.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +19,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode.dart';
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode_tracking.dart';
 import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
+
+import 'package:MatrixScanSimpleSample/modules/auxiliar_modules.dart';
 
 class MatrixScanScreen extends StatefulWidget {
   final String title;
@@ -46,21 +48,21 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   bool captured = false;
 
   List<ScanResult> scanResults = [];
-  List<String> scanResultString = [];
+  List<BarcodeLocation> scanResultString = [];
 
   //creación de una matriz con  scandit
-
-  final double tolerance = 20;
-
+  String forward = "y";
+  String reverse = "x";
+  double sumH = 0;
+  double tolerance = 0.5;
+  double media = 0;
+  double standarDesviation = 0;
+  List<String> resultScan = [];
   List<BarcodeLocation> pivots = [];
-  Map<String, String> configBarcode = {
-    "1": "13C4DG136305747",
-    "2": "A8705DAFCDDC",
-    "3": "A8705DAFCDDD",
-    "4": "A8705DAFCDDE"
-  };
 
-  Map<String, List<String>> matrixBarcodes = {};
+
+  Map<double, List<BarcodeLocation>> matrixBarcodes = {};
+
 
   _MatrixScanScreenState(this._context);
 
@@ -132,7 +134,9 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
               width: double.infinity,
               child: PlatformButton(
                   onPressed: () {
-                    print(" HOLA  ${jsonEncode(matrixBarcodes)}");
+                    executeStaticsstatistical();
+                    sortByColumns();
+                    calculateRows();
                   },
                   cupertino: (_, __) => CupertinoButtonData(
                       color: Color(scanditBlue),
@@ -165,50 +169,98 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       scanResults
           .add(ScanResult(trackedBarcode.barcode.symbology, trackedBarcode.barcode.data ?? ''));
-      if (!scanResultString.contains(trackedBarcode.barcode.data)) {
-        addAllKeysMatrix();
-        extractLocationsOfPivot(trackedBarcode);
-        if (pivots.length >= configBarcode.keys.length) {
-          verifyWithPivot(trackedBarcode);
-        }
+      if (!resultScan.contains(trackedBarcode.barcode.data)) {
+        resultScan.add(trackedBarcode.barcode.data!);
+        updateSumH(trackedBarcode);
+        scanResultString.add(BarcodeLocation(
+            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), 0));
       }
 
       //
     }
   }
 
-  void extractLocationsOfPivot(TrackedBarcode trackedBarcode) {
-    for (var key in configBarcode.keys) {
-      if (configBarcode[key] == trackedBarcode.barcode.data) {
-        pivots.add(BarcodeLocation(
-            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), key));
-        print(pivots.length);
-        return;
-      }
+  void executeStaticsstatistical() {
+    media = calculateMeanY(scanResultString, reverse);
+    standarDesviation = calculateStandarDesviation(scanResultString, reverse, media);
+    calculateTolerace();
+    calculateValueForColumn(reverse);
+  }
+
+  // no se puede mover
+  void updateSumH(TrackedBarcode trackedBarcode) {
+    sumH = sumH +
+        (trackedBarcode.location.bottomLeft.y -
+            trackedBarcode
+                .location.topLeft.y); // PILO CAMBIAR EJES MANUALES REVERSE = Y ORIENTATION = X
+  }
+
+  // no se puede mover
+  void calculateTolerace() {
+    tolerance = (standarDesviation / media) * calculateMeanH(sumH, scanResultString);
+    print("Tolerancia2 : $tolerance");
+  }
+
+  //no se puede
+  void calculateValueForColumn(String orientation) {
+    for (BarcodeLocation barcode in scanResultString) {
+      barcode.type = (barcode.location[orientation] / standarDesviation);
     }
   }
 
-  void verifyWithPivot(TrackedBarcode trackedBarcode) {
-    print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toMap()}");
-    for (var pivot in pivots) {
-      if (trackedBarcode.location.topLeft.x <= pivot.location["x"] + tolerance &&
-          trackedBarcode.location.topLeft.x >= pivot.location["x"] - tolerance) {
-        print(
-            "este es el pivote: ${pivot.toMap()} y este es el valor ${trackedBarcode.location.topLeft.toMap()}");
-        if (!matrixBarcodes[pivot.type]!.contains(trackedBarcode.barcode.data))
-          matrixBarcodes[pivot.type]!.add(trackedBarcode.barcode.data!);
-        scanResultString.add(trackedBarcode.barcode.data ?? '');
-      }
+  void printScanResultString() {
+    for (var barcode in scanResultString) {
+      print(" -----------------${barcode.barcode}");
     }
   }
 
-  void addAllKeysMatrix() {
+  void sortByColumns() {
     if (matrixBarcodes.isEmpty) {
-      for (var key in configBarcode.keys) {
-        matrixBarcodes.addAll({key: []});
+      for (BarcodeLocation barcode in scanResultString) {
+        insertIntoColumn(barcode);
       }
+    } else {
+      _resetScanResults();
+    }
+    printMatrixBarcodes();
+  }
+
+  void printMatrixBarcodes() {
+    for (var key in matrixBarcodes.keys) {
+      print("$key -----------------${matrixBarcodes[key]!.length}");
+
+      for (var barcode in matrixBarcodes[key]!) {
+        print("${barcode.barcode} ${barcode.type.toString()} ");
+
+
+
+  void insertIntoColumn(BarcodeLocation barcode) {
+    if (matrixBarcodes.keys.isEmpty) {
+      matrixBarcodes.addAll({
+        barcode.type: [barcode]
+      });
+    } else {
+      for (var pivot in matrixBarcodes.keys) {
+        if (barcode.type <= pivot + tolerance && barcode.type >= pivot - tolerance) {
+          if (!matrixBarcodes[pivot]!.contains(barcode)) {
+            matrixBarcodes[pivot]!.add(barcode);
+          }
+
+          return;
+        }
+      }
+
+      matrixBarcodes[barcode.type] = [barcode];
     }
   }
+
+  void calculateRows() {
+    if (matrixBarcodes.keys.isNotEmpty) {
+      for (var pivot in matrixBarcodes.keys) {
+        int high = matrixBarcodes[pivot]!.length - 1;
+        int low = 0;
+        quickSort(matrixBarcodes[pivot]!, low, high);
+
 
   @override
   void dispose() {
@@ -222,5 +274,12 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
 
   void _resetScanResults() {
     scanResults.clear();
+    matrixBarcodes.clear();
+    scanResultString.clear();
+    resultScan.clear();
+    pivots.clear();
+    media = 0;
+    standarDesviation = 0;
+    sumH = 0;
   }
 }
