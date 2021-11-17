@@ -5,7 +5,7 @@ import 'package:MatrixScanSimpleSample/barcode_location.dart';
 
 // Promedios
 double calculateMeanH(double sum, List<BarcodeLocation> listOfCodes) {
-  return (sum / listOfCodes.length) * 0.0085;
+  return (sum / listOfCodes.length) * 0.05;
 }
 
 double calculateMeanY(List<BarcodeLocation> listOfCodes, String orientation) {
@@ -38,7 +38,6 @@ double calculateStandarDesviation(
 List<BarcodeLocation> quickSort(List<BarcodeLocation> list, int low, int high) {
   if (low < high) {
     int pi = partition(list, low, high);
-    print("pivot: ${list[pi]} now at index $pi");
 
     quickSort(list, low, pi - 1);
     quickSort(list, pi + 1, high);
