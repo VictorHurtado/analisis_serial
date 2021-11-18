@@ -4,16 +4,28 @@
  * Copyright (C) 2021- Scandit AG. All rights reserved.
  */
 
-import 'package:MatrixScanSimpleSample/matrix_scan_screen.dart';
-import 'package:MatrixScanSimpleSample/scan_results_screen.dart';
+import 'package:MatrixScanSimpleSample/models/barcode_location.dart';
+import 'package:MatrixScanSimpleSample/views/matrix_scan_screen.dart';
+import 'package:MatrixScanSimpleSample/views/scan_results_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode.dart';
+
+import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ScanditFlutterDataCaptureBarcode.initialize();
+  var path = getApplicationDocumentsDirectory();
+  await Hive.initFlutter(path.toString());
+  Hive.registerAdapter(BarcodeLocationAdapter());
+  Hive.deleteBoxFromDisk('ScanData');
+
+  await Hive.openBox('ScanData');
+
   runApp(MyApp());
 }
 
@@ -51,8 +63,9 @@ class MyApp extends StatelessWidget {
           CupertinoAppData(theme: CupertinoThemeData(brightness: Brightness.light)),
       initialRoute: '/',
       routes: {
-        '/': (context) => MatrixScanScreen("MatrixScan Simple", licenseKey),
-        '/scanResults': (context) => ScanResultsScreen()
+        '/': (context) =>
+            MatrixScanScreen("MatrixScan Simple", (DataCaptureContext.forLicenseKey(licenseKey))),
+        '/scanResults': (context) => ListBarcodeScreen()
       },
     );
   }
