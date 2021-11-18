@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => MatrixScanScreen("MatrixScan Simple", licenseKey),
-        '/scanResults': (context) => ScanResultsScreen("Scan Results")
+        '/scanResults': (context) => ScanResultsScreen()
       },
     );
   }

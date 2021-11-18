@@ -4,15 +4,8 @@
  * Copyright (C) 2021- Scandit AG. All rights reserved.
  */
 
-import 'dart:convert';
-
 import 'package:MatrixScanSimpleSample/barcode_location.dart';
-import 'package:MatrixScanSimpleSample/scan_results_screen.dart';
 
-import 'package:encrypt/encrypt.dart' as EC;
-import 'dart:math';
-import 'package:MatrixScanSimpleSample/main.dart';
-import 'package:MatrixScanSimpleSample/scan_result.dart';
 import 'package:simple_cluster/src/dbscan.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +15,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode.dart';
 import 'package:scandit_flutter_datacapture_barcode/scandit_flutter_datacapture_barcode_tracking.dart';
 import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
-
-import 'package:MatrixScanSimpleSample/modules/auxiliar_modules.dart';
 
 class MatrixScanScreen extends StatefulWidget {
   final String title;
@@ -49,8 +40,6 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
 
   bool _isPermissionMessageVisible = false;
   bool captured = false;
-
-  List<ScanResult> scanResults = [];
 
   //creación de una matriz con  scandit
   String forward = "y";
@@ -200,8 +189,6 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   void didUpdateSession(BarcodeTracking barcodeTracking, BarcodeTrackingSession session) {
     // if (_barcodeTracking.isEnabled == true) {
     for (final trackedBarcode in session.addedTrackedBarcodes) {
-      scanResults
-          .add(ScanResult(trackedBarcode.barcode.symbology, trackedBarcode.barcode.data ?? ''));
       if (!resultScan.contains(trackedBarcode.barcode.data)) {
         resultScan.add(trackedBarcode.barcode.data!);
         // updateSumH(trackedBarcode);
@@ -273,11 +260,6 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
 
 //   // no se puede mover
 //   void calculateTolerace() {
-//     tolerance = (standarDesviation / media) * calculateMeanH(sumH, scanResultString);
-
-//     print("Tolerancia2 : $tolerance");
-//   }
-
 //   //no se puede
 //   void calculateValueForColumn(String orientation) {
 //     for (BarcodeLocation barcode in scanResultString) {
@@ -456,14 +438,9 @@ class _MatrixScanScreenState extends State<MatrixScanScreen>
   }
 
   void _resetScanResults() {
-    scanResults.clear();
     matrixBarcodes.clear();
     scanResultString.clear();
     resultScan.clear();
     resultSort.clear();
-    pivots.clear();
-    media = 0;
-    standarDesviation = 0;
-    sumH = 0;
   }
 }
