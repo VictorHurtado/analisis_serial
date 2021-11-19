@@ -4,6 +4,8 @@
  * Copyright (C) 2021- Scandit AG. All rights reserved.
  */
 
+import 'dart:ui';
+
 import 'package:MatrixScanSimpleSample/bloc/matrix_scan_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +58,12 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
           : EdgeInsets.all(48);
       child = Stack(children: [
         _bloc.captureView,
+        Consumer<MatrixMaterialScanBloc>(
+          builder: (_, _bloc, __) => Text(
+            "epsilon: ${_bloc.epsilon}\nMin. Pts: ${_bloc.minPoints}\nquantity: ${_bloc.quantityGroups} ",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+          ),
+        ),
         Container(
           alignment: Alignment.topRight,
           child: Row(
