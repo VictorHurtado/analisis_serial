@@ -5,6 +5,7 @@
  */
 
 import 'package:MatrixScanSimpleSample/bloc/matrix_scan_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,6 @@ import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
-import '';
 
 class MatrixScanScreen extends StatefulWidget {
   final String title;
@@ -32,6 +32,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
   MatrixMaterialScanBloc _bloc;
   bool _isPermissionMessageVisible = false;
   bool captured = false;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   //creación de una matriz con  scandit
 
   _MatrixScanScreenState(this._bloc);
@@ -55,6 +56,29 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
           : EdgeInsets.all(48);
       child = Stack(children: [
         _bloc.captureView,
+        Container(
+          alignment: Alignment.topRight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(
+                child: FloatingActionButton(
+                  heroTag: "btconfig",
+                  elevation: 8,
+                  mini: true,
+                  child: Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    print("Configuración");
+                    _showDialog();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
         Container(
           alignment: Alignment.bottomCenter,
           child: Row(
@@ -122,5 +146,77 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
     WidgetsBinding.instance?.removeObserver(this);
 
     super.dispose();
+  }
+
+  _showDialog() async {
+    await showDialog<String>(
+      context: context,
+      builder: (context) => _SystemPadding(
+        child: AlertDialog(
+          contentPadding: const EdgeInsets.all(16.0),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                    autofocus: true,
+                    decoration: InputDecoration(labelText: 'Epsilon', hintText: '200'),
+                    onSaved: (value) {
+                      _bloc.updateEpsilon(value.toString());
+                    },
+                  ),
+                  TextFormField(
+                    autofocus: false,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(labelText: 'Min. Elementos', hintText: '2'),
+                    onSaved: (value) {
+                      _bloc.updateMinPoints(value.toString());
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+                child: const Text('cancelar'),
+                onPressed: () {
+                  Navigator.pop(context);
+                }),
+            TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  validateForm();
+                  Navigator.pop(context);
+                })
+          ],
+        ),
+      ),
+    );
+  }
+
+  void validateForm() {
+    if (formKey.currentState != null) {
+      print("Hola");
+      formKey.currentState!.save();
+    }
+  }
+}
+
+class _SystemPadding extends StatelessWidget {
+  final Widget child;
+
+  _SystemPadding({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var mediaQuery = MediaQuery.of(context);
+    return new AnimatedContainer(
+        padding: mediaQuery.viewInsets, duration: const Duration(milliseconds: 300), child: child);
   }
 }

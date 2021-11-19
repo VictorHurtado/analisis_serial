@@ -35,6 +35,10 @@ class MatrixMaterialScanBloc extends Bloc
   List<int> dimension = [6, 2];
   int quantityOfCodes = 3;
 
+  double epsilon = 200;
+  int minPoints = 2;
+  int quantityGroups = 2;
+
   StreamController<bool> _isCapturingStreamController = StreamController();
 
   Stream<bool> get isCapturing => _isCapturingStreamController.stream;
@@ -102,6 +106,22 @@ class MatrixMaterialScanBloc extends Bloc
     captureContext.setFrameSource(_camera!);
     switchCameraOn();
     _barcodeTracking.isEnabled = false;
+  }
+
+  void updateEpsilon(String newEpsilon) {
+    print(newEpsilon);
+    if (newEpsilon != '' && newEpsilon != null) {
+      epsilon = double.parse(newEpsilon);
+    }
+    notifyListeners();
+  }
+
+  void updateMinPoints(String newMinPoints) {
+    print(newMinPoints);
+    if (newMinPoints != '' && newMinPoints != null) {
+      minPoints = int.parse(newMinPoints);
+    }
+    notifyListeners();
   }
 
   void captureBarcodeEnable() {
@@ -174,8 +194,8 @@ class MatrixMaterialScanBloc extends Bloc
     List<List<double>> dataset = valuesForClustering();
     print(dataset);
     DBSCAN dbscan = DBSCAN(
-      epsilon: 180, // 200 para dos columnas y grupos 180 arris
-      minPoints: 2,
+      epsilon: epsilon, // 200 para dos columnas y grupos 180 arris
+      minPoints: minPoints,
     );
 
     List<List<int>> clusterOutput = dbscan.run(dataset);
