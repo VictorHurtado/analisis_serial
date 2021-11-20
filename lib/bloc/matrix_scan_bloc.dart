@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:MatrixScanSimpleSample/db/db.dart';
+import 'package:MatrixScanSimpleSample/methods/math_functions.dart';
 import 'package:MatrixScanSimpleSample/models/barcode_location.dart';
 import 'package:simple_cluster/simple_cluster.dart';
 
@@ -214,7 +215,6 @@ class MatrixMaterialScanBloc extends Bloc
 
     printBarcodes(clusterOutput);
     saveBarcodesInGroups(clusterOutput);
-    sortByRow();
   }
 
   void saveBarcodesInGroups(List<List<int>> clusterOutput) {
@@ -274,6 +274,27 @@ class MatrixMaterialScanBloc extends Bloc
       print("$count ${barcode.barcode}");
       auxMatrix[count]!.add(barcode);
       count++;
+    }
+  }
+
+  void sortColumns() {
+    if (matrixBarcodes.keys.isNotEmpty) {
+      for (var pivot in matrixBarcodes.keys) {
+        int high = matrixBarcodes[pivot]!.length - 1;
+        int low = 0;
+        quickSort(matrixBarcodes[pivot]!, low, high);
+      }
+    }
+    printMatrixBarcodes();
+  }
+
+  void printMatrixBarcodes() {
+    for (var key in matrixBarcodes.keys) {
+      print("$key -----------------${matrixBarcodes[key]!.length}");
+
+      for (var barcode in matrixBarcodes[key]!) {
+        print("${barcode.barcode} ${barcode.location["x"].toString()} ");
+      }
     }
   }
 

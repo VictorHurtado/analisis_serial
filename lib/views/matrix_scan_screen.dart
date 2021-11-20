@@ -122,6 +122,8 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                   ),
                   onPressed: () {
                     _bloc.simpleClustering();
+                    _bloc.sortColumns();
+                    _bloc.sortByRow();
                     _bloc.finishOrder();
                     _bloc.switchCameraOff();
                     Navigator.pushNamed(context, '/scanResults').then((value) {
