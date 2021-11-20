@@ -34,6 +34,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
   MatrixMaterialScanBloc _bloc;
   bool _isPermissionMessageVisible = false;
   bool captured = false;
+
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   //creación de una matriz con  scandit
 
@@ -60,7 +61,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
         _bloc.captureView,
         Consumer<MatrixMaterialScanBloc>(
           builder: (_, _bloc, __) => Text(
-            "epsilon: ${_bloc.epsilon}\nMin. Pts: ${_bloc.minPoints}\nquantity: ${_bloc.quantityGroups} ",
+            "epsilon: ${_bloc.epsilon}\nMin. Pts: ${_bloc.minPoints}\ngroups: ${_bloc.groups}\nquantity:${_bloc.quantityOfCodes}",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
           ),
         ),
@@ -80,7 +81,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                   ),
                   onPressed: () {
                     print("Configuración");
-                    _showDialog();
+                    _showDialog(_bloc.groups);
                   },
                 ),
               ),
@@ -122,9 +123,11 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                   onPressed: () {
                     _bloc.simpleClustering();
                     _bloc.finishOrder();
+                    _bloc.switchCameraOff();
                     Navigator.pushNamed(context, '/scanResults').then((value) {
                       _bloc.switchCameraOff();
                       _bloc.switchCameraOn();
+                      _bloc.resetScanResults();
                     });
                   },
                 ),
@@ -156,37 +159,72 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
     super.dispose();
   }
 
-  _showDialog() async {
+  _showDialog(int groups) async {
+    int? groupValue = groups;
     await showDialog<String>(
       context: context,
-      builder: (context) => _SystemPadding(
+      builder: (
+        context,
+      ) =>
+          _SystemPadding(
         child: AlertDialog(
           contentPadding: const EdgeInsets.all(16.0),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextFormField(
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                    autofocus: true,
-                    decoration: InputDecoration(labelText: 'Epsilon', hintText: '200'),
-                    onSaved: (value) {
-                      _bloc.updateEpsilon(value.toString());
-                    },
-                  ),
-                  TextFormField(
-                    autofocus: false,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(labelText: 'Min. Elementos', hintText: '2'),
-                    onSaved: (value) {
-                      _bloc.updateMinPoints(value.toString());
-                    },
-                  ),
-                ],
+          content: StatefulBuilder(
+            builder: (context, setState) => SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      autofocus: true,
+                      decoration: InputDecoration(labelText: 'Epsilon', hintText: '200'),
+                      onSaved: (value) {
+                        _bloc.updateEpsilon(value.toString());
+                      },
+                    ),
+                    TextFormField(
+                      autofocus: false,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(labelText: 'Min. Elementos', hintText: '2'),
+                      onSaved: (value) {
+                        _bloc.updateMinPoints(value.toString());
+                      },
+                    ),
+                    TextFormField(
+                      autofocus: false,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(labelText: 'Cantidad de codigos', hintText: '3'),
+                      onSaved: (value) {
+                        _bloc.updateQuantityOfCodes(value.toString());
+                      },
+                    ),
+                    Row(
+                      children: [
+                        Text("¿Por Grupos?"),
+                        Radio(
+                          value: 1,
+                          groupValue: groupValue,
+                          toggleable: true,
+                          onChanged: (int? value) {
+                            if (_bloc.groups == 0) {
+                              _bloc.updateGroups("1");
+                            } else {
+                              _bloc.updateGroups("0");
+                            }
+                            setState(() {
+                              groupValue = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -19,7 +19,6 @@ class MatrixMaterialScanBloc extends Bloc
   late BarcodeTracking _barcodeTracking;
   late DataCaptureView captureView;
 
-  Timer? _timer;
   static Feedback feedback = Feedback.defaultFeedback;
 
   List<String> resultScan = [];
@@ -27,6 +26,7 @@ class MatrixMaterialScanBloc extends Bloc
   List<BarcodeLocation> scanResultString = [];
 
   Map<int, List<BarcodeLocation>> matrixBarcodes = {};
+  Map<int, List<BarcodeLocation>> auxMatrix = {};
 
   //DBSCAN
   List<List<double>> points = [];
@@ -37,7 +37,7 @@ class MatrixMaterialScanBloc extends Bloc
 
   double epsilon = 200;
   int minPoints = 2;
-  int quantityGroups = 2;
+  int groups = 0;
 
   StreamController<bool> _isCapturingStreamController = StreamController();
 
@@ -124,6 +124,22 @@ class MatrixMaterialScanBloc extends Bloc
     notifyListeners();
   }
 
+  void updateQuantityOfCodes(String newQuantity) {
+    print(newQuantity);
+    if (newQuantity != '' && newQuantity != null) {
+      quantityOfCodes = int.parse(newQuantity);
+    }
+    notifyListeners();
+  }
+
+  void updateGroups(String newGroups) {
+    print(newGroups);
+    if (newGroups != '' && newGroups != null) {
+      groups = int.parse(newGroups);
+    }
+    notifyListeners();
+  }
+
   void captureBarcodeEnable() {
     if (_camera!.desiredState == FrameSourceState.on) {
       switchCameraOff();
@@ -145,22 +161,11 @@ class MatrixMaterialScanBloc extends Bloc
   }
 
   void switchCameraOn() {
-    _resetPauseCameraTimer();
     _camera!.switchToDesiredState(FrameSourceState.on);
-  }
-
-  void _resetPauseCameraTimer() {
-    _timer?.cancel();
-    _timer = Timer(Duration(seconds: 30), () {
-      _isCapturingStreamController.sink.add(false);
-      _camera!.switchToDesiredState(FrameSourceState.off);
-    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-
     _isCapturingStreamController.close();
     _barcodeTracking.removeListener(this);
     _barcodeTracking.isEnabled = false;
@@ -209,13 +214,13 @@ class MatrixMaterialScanBloc extends Bloc
 
     printBarcodes(clusterOutput);
     saveBarcodesInGroups(clusterOutput);
+    sortByRow();
   }
 
   void saveBarcodesInGroups(List<List<int>> clusterOutput) {
     if (matrixBarcodes.isNotEmpty) matrixBarcodes.clear();
     for (var cluster in clusterOutput) {
       int index = clusterOutput.indexOf(cluster);
-
       for (var barcode in cluster) {
         print(scanResultString[barcode].barcode);
         if (matrixBarcodes.keys.contains(index)) {
@@ -246,12 +251,39 @@ class MatrixMaterialScanBloc extends Bloc
     return points;
   }
 
-  finishOrder() {
+  void sortByRow() {
+    if (quantityOfCodes > 0 && groups == 1) {
+      print("entre");
+      auxMatrix.clear();
+      for (var pivot in matrixBarcodes.keys) {
+        print("ESTE ES EL PIVOTE $pivot");
+        createNewTag(matrixBarcodes[pivot]!);
+      }
+      matrixBarcodes.clear();
+
+      matrixBarcodes.addAll(auxMatrix);
+    }
+  }
+
+  void createNewTag(List<BarcodeLocation> listOfCodes) {
+    int count = 0;
+
+    for (var barcode in listOfCodes) {
+      if (count == quantityOfCodes) count = 0;
+      if (!auxMatrix.keys.contains(count)) auxMatrix[count] = [];
+      print("$count ${barcode.barcode}");
+      auxMatrix[count]!.add(barcode);
+      count++;
+    }
+  }
+
+  void finishOrder() {
     var box = HiveDB.getBoxScanData();
     box.put("result", matrixBarcodes);
   }
 
-  void _resetScanResults() {
+  void resetScanResults() {
+    auxMatrix.clear();
     matrixBarcodes.clear();
     scanResultString.clear();
     resultScan.clear();
