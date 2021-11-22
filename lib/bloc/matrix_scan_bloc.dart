@@ -181,8 +181,8 @@ class MatrixMaterialScanBloc extends Bloc
     // if (_barcodeTracking.isEnabled == true) {
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       if (!resultScan.contains(trackedBarcode.barcode.data)) {
-        resultScan.add(trackedBarcode.barcode.data!);
-        print("${trackedBarcode.barcode.data}{trackedBarcode.location.topLeft.toString()}");
+        addNewCode(trackedBarcode.barcode.data!);
+        print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toString()}");
         // updateSumH(trackedBarcode);
         scanResultString.add(BarcodeLocation(
             trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), 0));
@@ -190,6 +190,11 @@ class MatrixMaterialScanBloc extends Bloc
 
       //
     }
+  }
+
+  void addNewCode(String newBarcode) {
+    resultScan.add(newBarcode);
+    notifyListeners();
   }
 
   void capturedEnable() {

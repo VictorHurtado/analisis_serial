@@ -61,7 +61,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
         _bloc.captureView,
         Consumer<MatrixMaterialScanBloc>(
           builder: (_, _bloc, __) => Text(
-            "epsilon: ${_bloc.epsilon}\nMinxCluster: ${_bloc.minPoints}\ngroups: ${_bloc.groups == 0 ? false : true}\nCódigosxMat:${_bloc.quantityOfCodes}\nCapturados:${_bloc.scanResultString.length}",
+            "epsilon: ${_bloc.epsilon}\nMinxCluster: ${_bloc.minPoints}\ngroups: ${_bloc.groups == 0 ? false : true}\nCódigosxMat:${_bloc.quantityOfCodes}\nCapturados:${_bloc.resultScan.length}",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
           ),
         ),
