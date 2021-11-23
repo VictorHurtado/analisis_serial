@@ -33,12 +33,13 @@ class MatrixMaterialScanBloc extends Bloc
   List<List<double>> points = [];
 
   //config material
-  List<int> dimension = [6, 2];
+  List<int> dimension = [9, 2];
   int quantityOfCodes = 3;
-
+  int qtClusters = 6;
   double epsilon = 200;
   int minPoints = 2;
   int groups = 0;
+  int valueForChange = 10;
 
   StreamController<bool> _isCapturingStreamController = StreamController();
 
@@ -141,6 +142,14 @@ class MatrixMaterialScanBloc extends Bloc
     notifyListeners();
   }
 
+  void updateQtClusters(String newQtClusters) {
+    print(newQtClusters);
+    if (newQtClusters != '' && newQtClusters != null) {
+      qtClusters = int.parse(newQtClusters);
+    }
+    notifyListeners();
+  }
+
   void captureBarcodeEnable() {
     if (_camera!.desiredState == FrameSourceState.on) {
       switchCameraOff();
@@ -202,8 +211,41 @@ class MatrixMaterialScanBloc extends Bloc
     Future.delayed(Duration(seconds: 4)).whenComplete(() => _barcodeTracking.isEnabled = false);
   }
 
-  void simpleClustering() {
-    List<List<double>> dataset = valuesForClustering();
+  void executeSimpleClustering() {
+    List<List<int>> clusterOutput = [];
+    double epsilonPrueba = 300;
+    int minPointsPrueba = minPoints;
+    double valueOfEpsilon = epsilon;
+    while (valueOfEpsilon != 0 && valueOfEpsilon < 1000) {
+      print("entre");
+      clusterOutput = simpleClustering(valuesForClustering(), epsilonPrueba, minPointsPrueba);
+      valueOfEpsilon = verifyClustersLength(clusterOutput);
+      epsilonPrueba += valueOfEpsilon;
+      print("__________________$epsilonPrueba _______________");
+    }
+
+    epsilon = epsilonPrueba;
+    saveBarcodesInGroups(clusterOutput);
+    sortColumns();
+    sortByRow();
+    finishOrder();
+  }
+
+  double verifyClustersLength(List<List<int>> clusterOutput) {
+    if (clusterOutput.length != 0) {
+      if (clusterOutput.length < qtClusters) {
+        return -5;
+      } else if (clusterOutput.length > qtClusters) {
+        return 5;
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  }
+
+  List<List<int>> simpleClustering(List<List<double>> dataset, double epsilon, int minPoints) {
     print(dataset);
     DBSCAN dbscan = DBSCAN(
       epsilon: epsilon, // 200 para dos columnas y grupos 180 arris
@@ -219,8 +261,7 @@ class MatrixMaterialScanBloc extends Bloc
     print("Cluster label for points");
     print(dbscan.label);
 
-    printBarcodes(clusterOutput);
-    saveBarcodesInGroups(clusterOutput);
+    return clusterOutput;
   }
 
   void saveBarcodesInGroups(List<List<int>> clusterOutput) {

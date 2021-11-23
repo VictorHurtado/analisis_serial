@@ -61,7 +61,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
         _bloc.captureView,
         Consumer<MatrixMaterialScanBloc>(
           builder: (_, _bloc, __) => Text(
-            "epsilon: ${_bloc.epsilon}\nMinxCluster: ${_bloc.minPoints}\ngroups: ${_bloc.groups == 0 ? false : true}\nCódigosxMat:${_bloc.quantityOfCodes}\nCapturados:${_bloc.resultScan.length}",
+            "epsilon: ${_bloc.epsilon}\nMinxCluster: ${_bloc.minPoints}\ngroups: ${_bloc.groups == 0 ? false : true}\nCódigosxMat:${_bloc.quantityOfCodes}\nClusters:${_bloc.qtClusters}\nCapturados:${_bloc.resultScan.length} ",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
           ),
         ),
@@ -121,10 +121,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                     color: Colors.white,
                   ),
                   onPressed: () {
-                    _bloc.simpleClustering();
-                    _bloc.sortColumns();
-                    _bloc.sortByRow();
-                    _bloc.finishOrder();
+                    _bloc.executeSimpleClustering();
                     _bloc.switchCameraOff();
                     Navigator.pushNamed(context, '/scanResults').then((value) {
                       _bloc.switchCameraOff();
@@ -203,6 +200,15 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                       decoration: InputDecoration(labelText: 'Cantidad de codigos', hintText: '3'),
                       onSaved: (value) {
                         _bloc.updateQuantityOfCodes(value.toString());
+                      },
+                    ),
+                    TextFormField(
+                      autofocus: false,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(labelText: 'Caantidad de grupos', hintText: '3'),
+                      onSaved: (value) {
+                        _bloc.updateQtClusters(value.toString());
                       },
                     ),
                     Row(
