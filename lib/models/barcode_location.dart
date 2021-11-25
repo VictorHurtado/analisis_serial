@@ -9,7 +9,6 @@ class BarcodeLocation {
   String barcode;
   @HiveField(2)
   Map<String, dynamic> location;
-
   BarcodeLocation(this.barcode, this.location, this.type);
 
   Map<String, dynamic> toJson() {

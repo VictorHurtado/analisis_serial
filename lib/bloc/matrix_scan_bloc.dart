@@ -39,7 +39,8 @@ class MatrixMaterialScanBloc extends Bloc
   double epsilon = 200;
   int minPoints = 2;
   int groups = 0;
-  int valueForChange = 10;
+  int instant = 1;
+  double valueForChange = 5;
 
   StreamController<bool> _isCapturingStreamController = StreamController();
 
@@ -191,10 +192,11 @@ class MatrixMaterialScanBloc extends Bloc
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       if (!resultScan.contains(trackedBarcode.barcode.data)) {
         addNewCode(trackedBarcode.barcode.data!);
-        print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toString()}");
+        print("instante en el que fue capturado: ${instant}");
+        print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toMap()}");
         // updateSumH(trackedBarcode);
-        scanResultString.add(BarcodeLocation(
-            trackedBarcode.barcode.data!, trackedBarcode.location.topLeft.toMap(), 0));
+        scanResultString.add(BarcodeLocation(trackedBarcode.barcode.data!,
+            trackedBarcode.location.topLeft.toMap(), instant.toDouble()));
       }
 
       //
@@ -208,37 +210,53 @@ class MatrixMaterialScanBloc extends Bloc
 
   void capturedEnable() {
     _barcodeTracking.isEnabled = true;
-    Future.delayed(Duration(seconds: 4)).whenComplete(() => _barcodeTracking.isEnabled = false);
+    Future.delayed(Duration(seconds: 6)).whenComplete(() => _barcodeTracking.isEnabled = false);
+    instant++;
   }
 
   void executeSimpleClustering() {
     List<List<int>> clusterOutput = [];
     double epsilonPrueba = 300;
-    int minPointsPrueba = minPoints;
+    int minPointsPrueba = 2;
     double valueOfEpsilon = epsilon;
-    while (valueOfEpsilon != 0 && valueOfEpsilon < 1000) {
-      print("entre");
+    int maxClusterForEpsilon = 0;
+
+    while (valueOfEpsilon != 0) {
       clusterOutput = simpleClustering(valuesForClustering(), epsilonPrueba, minPointsPrueba);
       valueOfEpsilon = verifyClustersLength(clusterOutput);
-      epsilonPrueba += valueOfEpsilon;
+      if (clusterOutput.length > maxClusterForEpsilon) {
+        maxClusterForEpsilon = clusterOutput.length;
+        epsilonPrueba += valueOfEpsilon;
+      }
+
       print("__________________$epsilonPrueba _______________");
     }
 
     epsilon = epsilonPrueba;
     saveBarcodesInGroups(clusterOutput);
-    sortColumns();
+    // sortColumns();
+
+    sortColumnsWithSort();
+    print("----------------------");
+    // sortByCoordenates();
+
+    printMatrixBarcodes();
     sortByRow();
     finishOrder();
   }
 
   double verifyClustersLength(List<List<int>> clusterOutput) {
-    if (clusterOutput.length != 0) {
-      if (clusterOutput.length < qtClusters) {
-        return -5;
-      } else if (clusterOutput.length > qtClusters) {
-        return 5;
-      } else {
+    if (clusterOutput.length != 0 && clusterOutput.length != qtClusters) {
+      if (clusterOutput.length < qtClusters && valueForChange > 0) {
+        return -valueForChange;
+      } else if (clusterOutput.length > qtClusters && valueForChange > 0) {
+        return valueForChange;
+      } else if (valueForChange == 0) {
         return 0;
+      } else {
+        print("reducccion de value for change");
+        valueForChange = valueForChange - 1;
+        return valueForChange;
       }
     } else {
       return 0;
@@ -256,11 +274,12 @@ class MatrixMaterialScanBloc extends Bloc
     print("===== 1 =====");
     print("Clusters output");
     print(clusterOutput); //or dbscan.cluster
+    print(clusterOutput.length);
     print("Noise");
     print(dbscan.noise);
     print("Cluster label for points");
     print(dbscan.label);
-
+    printBarcodes(clusterOutput);
     return clusterOutput;
   }
 
@@ -282,8 +301,9 @@ class MatrixMaterialScanBloc extends Bloc
 
   void printBarcodes(List<List<int>> clusterOutput) {
     for (var cluster in clusterOutput) {
+      print("_________");
       for (var barcode in cluster) {
-        print(scanResultString[barcode].barcode);
+        print("${scanResultString[barcode].barcode} ${scanResultString[barcode].location}");
       }
     }
   }
@@ -324,12 +344,16 @@ class MatrixMaterialScanBloc extends Bloc
     }
   }
 
-  void sortColumns() {
+  void sortColumnsWithSort() {
+    print("Ordenamiento por dos criterios");
+    printMatrixBarcodes();
     if (matrixBarcodes.keys.isNotEmpty) {
       for (var pivot in matrixBarcodes.keys) {
-        int high = matrixBarcodes[pivot]!.length - 1;
-        int low = 0;
-        quickSort(matrixBarcodes[pivot]!, low, high);
+        matrixBarcodes[pivot]!.sort((m1, m2) {
+          var r = m1.type.compareTo(m2.type);
+          if (r != 0) return r;
+          return m1.location["x"].compareTo(m2.location["x"]);
+        });
       }
     }
     printMatrixBarcodes();

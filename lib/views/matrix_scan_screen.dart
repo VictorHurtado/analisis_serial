@@ -127,6 +127,7 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                       _bloc.switchCameraOff();
                       _bloc.switchCameraOn();
                       _bloc.resetScanResults();
+                      _bloc.instant = 1;
                     });
                   },
                 ),
@@ -175,24 +176,24 @@ class _MatrixScanScreenState extends State<MatrixScanScreen> with WidgetsBinding
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    TextFormField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                      autofocus: true,
-                      decoration: InputDecoration(labelText: 'Epsilon', hintText: '200'),
-                      onSaved: (value) {
-                        _bloc.updateEpsilon(value.toString());
-                      },
-                    ),
-                    TextFormField(
-                      autofocus: false,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(labelText: 'Min. Elementos', hintText: '2'),
-                      onSaved: (value) {
-                        _bloc.updateMinPoints(value.toString());
-                      },
-                    ),
+                    // TextFormField(
+                    //   keyboardType: TextInputType.number,
+                    //   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                    //   autofocus: true,
+                    //   decoration: InputDecoration(labelText: 'Epsilon', hintText: '200'),
+                    //   onSaved: (value) {
+                    //     _bloc.updateEpsilon(value.toString());
+                    //   },
+                    // ),
+                    // TextFormField(
+                    //   autofocus: false,
+                    //   keyboardType: TextInputType.number,
+                    //   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                    //   decoration: InputDecoration(labelText: 'Min. Elementos', hintText: '2'),
+                    //   onSaved: (value) {
+                    //     _bloc.updateMinPoints(value.toString());
+                    //   },
+                    // ),
                     TextFormField(
                       autofocus: false,
                       keyboardType: TextInputType.number,
