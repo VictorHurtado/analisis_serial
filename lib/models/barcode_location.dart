@@ -9,7 +9,9 @@ class BarcodeLocation {
   String barcode;
   @HiveField(2)
   Map<String, dynamic> location;
-  BarcodeLocation(this.barcode, this.location, this.type);
+  @HiveField(3)
+  DateTime dateTime;
+  BarcodeLocation(this.barcode, this.location, this.type, this.dateTime);
 
   Map<String, dynamic> toJson() {
     return {"barcode": barcode, "location": location, "type": type};

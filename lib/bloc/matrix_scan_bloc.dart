@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:MatrixScanSimpleSample/db/db.dart';
-import 'package:MatrixScanSimpleSample/methods/math_functions.dart';
 import 'package:MatrixScanSimpleSample/models/barcode_location.dart';
 import 'package:simple_cluster/simple_cluster.dart';
 
@@ -36,7 +35,7 @@ class MatrixMaterialScanBloc extends Bloc
   List<int> dimension = [9, 2];
   int quantityOfCodes = 3;
   int qtClusters = 6;
-  double epsilon = 200;
+  double epsilon = 100;
   int minPoints = 2;
   int groups = 0;
   int instant = 1;
@@ -192,11 +191,12 @@ class MatrixMaterialScanBloc extends Bloc
     for (final trackedBarcode in session.addedTrackedBarcodes) {
       if (!resultScan.contains(trackedBarcode.barcode.data)) {
         addNewCode(trackedBarcode.barcode.data!);
-        print("instante en el que fue capturado: ${instant}");
-        print("${trackedBarcode.barcode.data}${trackedBarcode.location.topLeft.toMap()}");
+
+        print(
+            "-${trackedBarcode.barcode.data}-${trackedBarcode.location.topLeft.toMap()}-${DateTime.now()}");
         // updateSumH(trackedBarcode);
         scanResultString.add(BarcodeLocation(trackedBarcode.barcode.data!,
-            trackedBarcode.location.topLeft.toMap(), instant.toDouble()));
+            trackedBarcode.location.topLeft.toMap(), instant.toDouble(), DateTime.now()));
       }
 
       //
@@ -210,26 +210,28 @@ class MatrixMaterialScanBloc extends Bloc
 
   void capturedEnable() {
     _barcodeTracking.isEnabled = true;
-    Future.delayed(Duration(seconds: 6)).whenComplete(() => _barcodeTracking.isEnabled = false);
+    Future.delayed(Duration(seconds: 5)).whenComplete(() => _barcodeTracking.isEnabled = false);
     instant++;
   }
 
   void executeSimpleClustering() {
     List<List<int>> clusterOutput = [];
-    double epsilonPrueba = 300;
-    int minPointsPrueba = 2;
+    double epsilonPrueba = epsilon;
+    int minPointsPrueba = minPoints;
     double valueOfEpsilon = epsilon;
-    int maxClusterForEpsilon = 0;
+    int cont = 0;
 
-    while (valueOfEpsilon != 0) {
+    while (valueOfEpsilon != 0 && cont < 500) {
       clusterOutput = simpleClustering(valuesForClustering(), epsilonPrueba, minPointsPrueba);
       valueOfEpsilon = verifyClustersLength(clusterOutput);
-      if (clusterOutput.length > maxClusterForEpsilon) {
-        maxClusterForEpsilon = clusterOutput.length;
-        epsilonPrueba += valueOfEpsilon;
+
+      epsilonPrueba += valueOfEpsilon;
+      if (cont > 250) {
+        valueForChange = valueForChange / cont;
       }
 
-      print("__________________$epsilonPrueba _______________");
+      print("__________________$epsilonPrueba  $cont ________________________");
+      cont += 1;
     }
 
     epsilon = epsilonPrueba;
@@ -247,15 +249,16 @@ class MatrixMaterialScanBloc extends Bloc
 
   double verifyClustersLength(List<List<int>> clusterOutput) {
     if (clusterOutput.length != 0 && clusterOutput.length != qtClusters) {
+      print(
+          "---------------------------$valueForChange----------------${clusterOutput.length}--------------${qtClusters}");
+
+      if (valueForChange == 0) {
+        return 0;
+      }
+
       if (clusterOutput.length < qtClusters && valueForChange > 0) {
         return -valueForChange;
-      } else if (clusterOutput.length > qtClusters && valueForChange > 0) {
-        return valueForChange;
-      } else if (valueForChange == 0) {
-        return 0;
       } else {
-        print("reducccion de value for change");
-        valueForChange = valueForChange - 1;
         return valueForChange;
       }
     } else {
@@ -364,7 +367,7 @@ class MatrixMaterialScanBloc extends Bloc
       print("$key -----------------${matrixBarcodes[key]!.length}");
 
       for (var barcode in matrixBarcodes[key]!) {
-        print("${barcode.barcode} ${barcode.location["x"].toString()} ");
+        print("${barcode.barcode} ${barcode.location.toString()} ");
       }
     }
   }
@@ -379,5 +382,7 @@ class MatrixMaterialScanBloc extends Bloc
     matrixBarcodes.clear();
     scanResultString.clear();
     resultScan.clear();
+    epsilon = 300;
+    valueForChange = 5;
   }
 }
