@@ -1,9 +1,10 @@
+import 'package:almaviva_app/domain/controllers/scan/scan_controller.dart';
+import 'package:almaviva_app/ui/widgets/tile_barcode.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CaptureView extends StatelessWidget {
-  const CaptureView({Key? key}) : super(key: key);
-
+class CaptureView extends GetWidget<ScanController> {
+  final _scanController = Get.find<ScanController>();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -14,12 +15,16 @@ class CaptureView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _actionsContainer(),
+            const SizedBox(
+              height: 20,
+            ),
             Expanded(
               child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
                 slivers: [
                   SliverList(
                       delegate: SliverChildBuilderDelegate(
-                    (context, index) => ListTile(title: Text("Texto de Prueba, index $index")),
+                    (context, index) => ListTileData(title: "${index + 1} - barcode "),
                     childCount: 10,
                   )),
                 ],
@@ -34,7 +39,7 @@ class CaptureView extends StatelessWidget {
       children: [
         const Text(
           "Resultados de Escaneo",
-          style: TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.w700),
+          style: TextStyle(color: Colors.black87, fontSize: 17, fontWeight: FontWeight.w700),
         ),
         const Expanded(child: SizedBox()),
         Container(
@@ -47,11 +52,14 @@ class CaptureView extends StatelessWidget {
           child: Center(
             child: MaterialButton(
                 splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
                 child: const Icon(
                   Icons.camera_alt_rounded,
                   color: Colors.white,
                 ),
-                onPressed: () => print("Escaneando")),
+                onPressed: () {
+                  _scanController.activeSesionScanner();
+                }),
           ),
         ),
       ],

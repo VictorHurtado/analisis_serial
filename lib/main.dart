@@ -1,4 +1,5 @@
-import 'package:almaviva_app/screens/screens.dart';
+import 'package:almaviva_app/routes/routes.dart';
+import 'package:almaviva_app/ui/main_binding.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +16,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      initialRoute: DWRoutes.home,
+      getPages: DWPages.pages,
+      initialBinding: MainBinding(),
     );
   }
 }
