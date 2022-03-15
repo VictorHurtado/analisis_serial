@@ -58,10 +58,9 @@ class DatawedgeService extends DatawedgeServiceInterface {
 
   @override
   Future<void> activeSessionScanner() async {
+    print("activo sesión scanner");
     try {
       _sendDataWedgeCommand("com.symbol.datawedge.api.SOFT_SCAN_TRIGGER", "START_SCANNING");
-      await Future.delayed(Duration(seconds: 2)).then((value) =>
-          _sendDataWedgeCommand("com.symbol.datawedge.api.SOFT_SCAN_TRIGGER", "STOP_SCANNING"));
     } catch (e) {
       print("Error :C : $e");
     }

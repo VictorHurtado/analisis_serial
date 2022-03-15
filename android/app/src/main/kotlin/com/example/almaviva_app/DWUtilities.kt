@@ -6,7 +6,7 @@ import android.os.Bundle
 import java.util.*
 
 object DWUtilities {
-    const val PROFILE_INTENT_ACTION = "com.zebra.dwmultibarcode"
+    const val PROFILE_INTENT_ACTION = "com.compunet.almaviva.SCAN"
     const val PROFILE_NAME = "DataWedge MultiBarcode"
     private const val EXTRA_GET_VERSION_INFO = "com.symbol.datawedge.api.GET_VERSION_INFO"
     private const val EXTRA_KEY_NOTIFICATION_TYPE = "com.symbol.datawedge.api.NOTIFICATION_TYPE"
@@ -152,7 +152,7 @@ object DWUtilities {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_SET_CONFIG, profileConfig)
     }
 
-    private fun sendDataWedgeIntentWithExtra(
+     fun sendDataWedgeIntentWithExtra(
         context: Context,
         action: String,
         extraKey: String,
@@ -164,7 +164,7 @@ object DWUtilities {
         context.sendBroadcast(dwIntent)
     }
 
-    private fun sendDataWedgeIntentWithExtra(
+     fun sendDataWedgeIntentWithExtra(
         context: Context,
         action: String,
         extraKey: String,
