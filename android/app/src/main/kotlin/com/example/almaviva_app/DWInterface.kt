@@ -1,4 +1,4 @@
-package com.darryncampbell.datawedgeflutter
+package com.example.almaviva_app
 
 import android.content.Context
 import android.content.Intent

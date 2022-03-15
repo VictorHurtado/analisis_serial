@@ -4,22 +4,21 @@ package com.example.almaviva_app
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import com.darryncampbell.datawedgeflutter.DWInterface
+import android.widget.TextView
+import com.example.almaviva_app.DWUtilities.EXTRA_RESULT_GET_ACTIVE_PROFILE
+import com.example.almaviva_app.DWUtilities.createProfile
+import com.example.almaviva_app.DWUtilities.getActiveProfile
+import com.example.almaviva_app.DWUtilities.getConfig
+import com.example.almaviva_app.DWUtilities.registerForProfileSwitch
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
-
 import io.flutter.plugins.GeneratedPluginRegistrant
 import org.json.JSONObject
-import java.text.SimpleDateFormat
-
-import java.util.*
 
 
 class MainActivity: FlutterActivity() {
@@ -31,18 +30,28 @@ class MainActivity: FlutterActivity() {
 
     private val dwInterface = DWInterface()
 
+    //MultiBarcodes
+    private val dwUtils = DWUtilities
+    var m_bUiInitialised = false
+    var m_bReportInstantly = false
+    var m_iBarcodeCount = 5
+
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 
-        GeneratedPluginRegistrant.registerWith(flutterEngine)
+        m_bUiInitialised = false
+        GeneratedPluginRegistrant.registerWith(flutterEngine);
         EventChannel(flutterEngine.dartExecutor, SCAN_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 private var dataWedgeBroadcastReceiver: BroadcastReceiver? = null
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     dataWedgeBroadcastReceiver = createDataWedgeBroadcastReceiver(events)
                     val intentFilter = IntentFilter()
-                    intentFilter.addAction(PROFILE_INTENT_ACTION)
-                    intentFilter.addAction(DWInterface.DATAWEDGE_RETURN_ACTION)
-                    intentFilter.addCategory(DWInterface.DATAWEDGE_RETURN_CATEGORY)
+                    intentFilter.addAction(dwUtils.ACTION_RESULT_DATAWEDGE)
+                    intentFilter.addCategory(Intent.CATEGORY_DEFAULT)
+                    intentFilter.addAction(dwUtils.PROFILE_INTENT_ACTION)
+
+
                     registerReceiver(
                         dataWedgeBroadcastReceiver, intentFilter)
                 }
@@ -71,16 +80,7 @@ class MainActivity: FlutterActivity() {
                 result.notImplemented()
             }
         }
-        /* var messenger:BinaryMessenger= flutterEngine.dartExecutor.binaryMessenger;
-         var methodChannel:MethodChannel = MethodChannel(messenger,COMMAND_CHANNEL);
-         methodChannel.setMethodCallHandler{
-             call,result -> if(call.method=="version"){
-                 var androidVersion:String = getAndroidVersion();
-                 result.success(androidVersion);
-             }else{
-                 result.notImplemented();
-             }
-         }*/
+
     }
 
 
@@ -121,19 +121,86 @@ class MainActivity: FlutterActivity() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action.equals(PROFILE_INTENT_ACTION))
                 {
-                    //  A barcode has been scanned
-                    var scanData = intent.getStringExtra(DWInterface.DATAWEDGE_SCAN_EXTRA_DATA_STRING)
-                    var symbology = intent.getStringExtra(DWInterface.DATAWEDGE_SCAN_EXTRA_LABEL_TYPE)
+                  displayScanResult(intent);
+                }else if(intent.equals(dwUtils.ACTION_RESULT_DATAWEDGE)){
+                    if (intent.hasExtra(EXTRA_RESULT_GET_ACTIVE_PROFILE)) {
+                        val activeProfile = intent.getStringExtra(EXTRA_RESULT_GET_ACTIVE_PROFILE)
+                        if (DWUtilities.PROFILE_NAME.equals(activeProfile, ignoreCase = true)) {
+                            //  The correct DataWedge profile is now in effect
+                            profileIsApplied()
+                        }
+                    } else if (intent.hasExtra(DWUtilities.EXTRA_RESULT_GET_VERSION_INFO)) {
+                        //  6.3 API for GetVersionInfo
+                        val versionInformation =
+                            intent.getBundleExtra(DWUtilities.EXTRA_RESULT_GET_VERSION_INFO)
+                        val DWVersion = versionInformation!!.getString("DATAWEDGE")
 
-                    var currentScan = Scan(scanData!!, symbology!!);
-                    events?.success(currentScan.toJson())
+                        if (DWVersion!!.compareTo("7.3.0") >= 1) {
+                            //  Register for profile change - want to update the UI based on the profile
+                            createProfile(applicationContext)
+                            registerForProfileSwitch(applicationContext)
+                            getActiveProfile(applicationContext)
+                        }
+                    }
+                }else if (intent.action == DWUtilities.ACTION_RESULT_NOTIFICATION) {
+                    //  6.3 API for RegisterForNotification
+                    if (intent.hasExtra(DWUtilities.EXTRA_RESULT_NOTIFICATION)) {
+                        val extras = intent.getBundleExtra(DWUtilities.EXTRA_RESULT_NOTIFICATION)
+                        val notificationType =
+                            extras!!.getString(DWUtilities.EXTRA_RESULT_NOTIFICATION_TYPE)
+                        if (notificationType != null && notificationType == DWUtilities.EXTRA_KEY_VALUE_PROFILE_SWITCH) {
+                            //  The profile has changed
+                            if (dwUtils.PROFILE_NAME.equals(extras!!.getString("PROFILE_NAME"), ignoreCase = true)) {
+                                //  The correct DataWedge profile is now in effect
+                                profileIsApplied()
+                            }
+                        }
+
+                    }
                 }
                 //  Could handle return values from DW here such as RETURN_GET_ACTIVE_PROFILE
                 //  or RETURN_ENUMERATE_SCANNERS
             }
         }
     }
-    fun getAndroidVersion() : String {
+
+    private fun profileIsApplied() {
+        if (!m_bUiInitialised) {
+            m_bUiInitialised = true
+
+            getConfig(applicationContext)
+        }
+    }
+
+    private fun instantReportUpdate(){
+        m_bReportInstantly = m_bReportInstantly != true
+    }
+
+    private fun displayScanResult(intent: Intent) : String {
+
+
+        val decoded_mode = intent.getStringExtra("com.symbol.datawedge.decoded_mode")
+        if (decoded_mode.equals("multiple_decode", ignoreCase = true)) {
+            var barcodeBlock = ""
+            val multiple_barcodes =
+                intent.getSerializableExtra("com.symbol.datawedge.barcodes") as List<Bundle>?
+            if (multiple_barcodes != null) {
+                //output += "Multi Barcode count: " + multiple_barcodes.size() + '\n';
+                for (i in multiple_barcodes.indices) {
+                    val thisBarcode = multiple_barcodes[i]
+                    val barcodeData = thisBarcode.getString("com.symbol.datawedge.data_string")
+                    val symbology = thisBarcode.getString("com.symbol.datawedge.label_type")
+                    barcodeBlock += "Barcode: $barcodeData [$symbology]"
+                    if (multiple_barcodes.size != 1) barcodeBlock += "\n"
+                }
+            }
+            return barcodeBlock;
+        }
+        return "";
+    }
+
+
+    private fun getAndroidVersion() : String {
         var sdkVersion:Int= Build.VERSION.SDK_INT;
         var release : String = Build.VERSION.RELEASE;
         return "Android Versión: " + sdkVersion + "("+ release + ")";
