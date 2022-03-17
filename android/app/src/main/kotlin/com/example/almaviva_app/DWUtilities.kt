@@ -24,15 +24,9 @@ object DWUtilities {
 
     //  Receiving
     const val ACTION_RESULT_DATAWEDGE = "com.symbol.datawedge.api.RESULT_ACTION"
-    const val EXTRA_RESULT_GET_ACTIVE_PROFILE = "com.symbol.datawedge.api.RESULT_GET_ACTIVE_PROFILE"
-    const val EXTRA_RESULT_GET_VERSION_INFO = "com.symbol.datawedge.api.RESULT_GET_VERSION_INFO"
-    const val EXTRA_RESULT_GET_CONFIG = "com.symbol.datawedge.api.RESULT_GET_CONFIG"
-    const val ACTION_RESULT_NOTIFICATION = "com.symbol.datawedge.api.NOTIFICATION_ACTION"
-    const val EXTRA_RESULT_NOTIFICATION = "com.symbol.datawedge.api.NOTIFICATION"
-    const val EXTRA_RESULT_NOTIFICATION_TYPE = "NOTIFICATION_TYPE"
     const val EXTRA_KEY_VALUE_SCANNER_STATUS = "SCANNER_STATUS"
-    const val EXTRA_KEY_VALUE_NOTIFICATION_STATUS = "STATUS"
-    const val EXTRA_KEY_VALUE_PROFILE_SWITCH = "PROFILE_SWITCH"
+    const val DATAWEDGE_SCAN_EXTRA_DATA_STRING = "com.symbol.datawedge.data_string"
+    const val DATAWEDGE_SCAN_EXTRA_LABEL_TYPE = "com.symbol.datawedge.label_type"
     fun getDWVersion(context: Context) {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_GET_VERSION_INFO, EXTRA_EMPTY)
     }
@@ -73,18 +67,14 @@ object DWUtilities {
         pluginName.add("BARCODE")
         bConfig.putStringArrayList("PLUGIN_NAME", pluginName)
         bMain.putBundle("PLUGIN_CONFIG", bConfig)
-        //  This is one example of a config that can be obtained.  The documentation details how
-        //  to obtain the associated applications with a profile or the current scanner status
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_GET_CONFIG, bMain)
     }
 
     fun createProfile(context: Context) {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_CREATE_PROFILE, PROFILE_NAME)
-
-        //  Now configure that created profile to apply to our application
         val profileConfig = Bundle()
         profileConfig.putString("PROFILE_NAME", PROFILE_NAME)
-        profileConfig.putString("PROFILE_ENABLED", "true") //  Seems these are all strings
+        profileConfig.putString("PROFILE_ENABLED", "true")
         profileConfig.putString("CONFIG_MODE", "UPDATE")
         val barcodeConfig = Bundle()
         barcodeConfig.putString("PLUGIN_NAME", "BARCODE")
@@ -94,6 +84,8 @@ object DWUtilities {
         barcodeProps.putString("scanner_selection_by_identifier", "INTERNAL_IMAGER")
         barcodeProps.putString("scanner_input_enabled", "true")
         barcodeProps.putString("scanning_mode", "3")
+
+
         barcodeConfig.putBundle("PARAM_LIST", barcodeProps)
         profileConfig.putBundle("PLUGIN_CONFIG", barcodeConfig)
         val appConfig = Bundle()
@@ -142,6 +134,8 @@ object DWUtilities {
         //  Note: configure_all_scanners does not work here, I guess because not all DW scanners (Camera?) support multi barcode
         barcodeProps.putString("scanner_selection_by_identifier", "INTERNAL_IMAGER")
         barcodeProps.putString("scanning_mode", "3")
+        barcodeProps.putString("picklist","2")
+        barcodeProps.putString("aim_type","5")
         if (bReportInstantly) barcodeProps.putString(
             "instant_reporting_enable",
             "true"
@@ -152,7 +146,7 @@ object DWUtilities {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_SET_CONFIG, profileConfig)
     }
 
-     fun sendDataWedgeIntentWithExtra(
+     private fun sendDataWedgeIntentWithExtra(
         context: Context,
         action: String,
         extraKey: String,
@@ -164,7 +158,7 @@ object DWUtilities {
         context.sendBroadcast(dwIntent)
     }
 
-     fun sendDataWedgeIntentWithExtra(
+     private fun sendDataWedgeIntentWithExtra(
         context: Context,
         action: String,
         extraKey: String,
@@ -175,4 +169,14 @@ object DWUtilities {
         dwIntent.putExtra(extraKey, extras)
         context.sendBroadcast(dwIntent)
     }
+
+    fun sendCommandString(context: Context, command: String, parameter: String, sendResult: Boolean = false) {
+        val dwIntent = Intent()
+        dwIntent.action = ACTION_DATAWEDGE
+        dwIntent.putExtra(command, parameter)
+        if (sendResult)
+            dwIntent.putExtra(DWInterface.DATAWEDGE_EXTRA_SEND_RESULT, "true")
+        context.sendBroadcast(dwIntent)
+    }
+
 }

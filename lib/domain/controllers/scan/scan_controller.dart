@@ -27,4 +27,10 @@ class ScanController extends GetxController {
   void activeSesionScanner() {
     datawedgeServiceInterface.activeSessionScanner();
   }
+
+  @override
+  void onClose() {
+    datawedgeServiceInterface.closeStreamController();
+    super.onClose();
+  }
 }

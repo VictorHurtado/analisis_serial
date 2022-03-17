@@ -25,9 +25,6 @@ class MainActivity: FlutterActivity() {
     private val PROFILE_INTENT_ACTION = "com.compunet.almaviva.SCAN";
     private val PROFILE_INTENT_BROADCAST = "2";
 
-//    private val dwInterface = DWInterface()
-
-    //MultiBarcodes
     private val dwUtils = DWUtilities
     var m_bUiInitialised = false
     var m_bReportInstantly = false
@@ -63,6 +60,14 @@ class MainActivity: FlutterActivity() {
         )
 
         MethodChannel(flutterEngine.dartExecutor, COMMAND_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "sendDataWedgeCommandStringParameter")
+            {
+                val arguments = JSONObject(call.arguments.toString())
+                val command: String = arguments.get("command") as String
+                val parameter: String = arguments.get("parameter") as String
+                dwUtils.sendCommandString(applicationContext, command, parameter)
+
+            }else
            if (call.method == "createDataWedgeProfile")
             {
                 createDataWedgeProfile(call.arguments.toString())
@@ -76,21 +81,17 @@ class MainActivity: FlutterActivity() {
 
 
     private fun createDataWedgeProfile(profileName: String) {
-        dwUtils.createProfile(context);
+        dwUtils.createProfile(applicationContext);
     }
     private fun createDataWedgeBroadcastReceiver(events: EventChannel.EventSink?): BroadcastReceiver? {
         return object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action.equals(PROFILE_INTENT_ACTION))
                 {
-
-
                     events?.success(displayScanResult(intent));
                 }else{
                     events?.error("0","no se logro emitir","algo ocurrio")
                 }
-                //  Could handle return values from DW here such as RETURN_GET_ACTIVE_PROFILE
-                //  or RETURN_ENUMERATE_SCANNERS
             }
         }
     }
@@ -113,6 +114,7 @@ class MainActivity: FlutterActivity() {
         val decoded_mode = intent.getStringExtra("com.symbol.datawedge.decoded_mode")
         if (decoded_mode.equals("multiple_decode", ignoreCase = true)) {
             var barcodeBlock = ""
+            var listOfCodes: ArrayList<String> = ArrayList<String>();
             val multiple_barcodes =
                 intent.getSerializableExtra("com.symbol.datawedge.barcodes") as List<Bundle>?
             if (multiple_barcodes != null) {
@@ -121,13 +123,23 @@ class MainActivity: FlutterActivity() {
                     val thisBarcode = multiple_barcodes[i]
                     val barcodeData = thisBarcode.getString("com.symbol.datawedge.data_string")
                     val symbology = thisBarcode.getString("com.symbol.datawedge.label_type")
-                    barcodeBlock += "Barcode: $barcodeData [$symbology]"
-                    if (multiple_barcodes.size != 1) barcodeBlock += "\n"
+                        barcodeBlock += "$barcodeData"
+                    listOfCodes.add("$barcodeData");
+                    if (multiple_barcodes.size != 1) barcodeBlock += ";"
                 }
             }
-            return barcodeBlock;
+            return JSONObject(mapOf("data" to listOfCodes)).toString();
+        }else{
+            var currentScan = "not scanning";
+            if (intent.action.equals(PROFILE_INTENT_ACTION))
+            {
+                var scanData = intent.getStringExtra(dwUtils.DATAWEDGE_SCAN_EXTRA_DATA_STRING)
+                var symbology = intent.getStringExtra(dwUtils.DATAWEDGE_SCAN_EXTRA_LABEL_TYPE)
+                currentScan = "Barcode: $scanData [$symbology]"
+            }
+            return "Barcode: " + currentScan;
         }
-        return "Barcode: " + decoded_mode;
+
     }
 
 

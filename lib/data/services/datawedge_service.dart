@@ -8,10 +8,11 @@ class DatawedgeService extends DatawedgeServiceInterface {
   final MethodChannel _methodChannel = const MethodChannel('com.compunet.almaviva/command');
   EventChannel scanChannel = const EventChannel("com.compunet.almaviva/scan");
 
-  final StreamController<String> _streamController = StreamController<String>();
+  final StreamController<Map<int, List<String>>> _streamController =
+      StreamController<Map<int, List<String>>>();
 
   @override
-  Stream<String> get eventOnDatawedge => _streamController.stream;
+  Stream<Map<int, List<String>>> get eventOnDatawedge => _streamController.stream;
 
   Future<void> _sendDataWedgeCommand(String command, String parameter) async {
     try {
@@ -47,7 +48,7 @@ class DatawedgeService extends DatawedgeServiceInterface {
   void listenScanResult() {
     print("estoy escuchando un evento");
     scanChannel.receiveBroadcastStream().listen((event) {
-      _streamController.sink.add(event);
+      analyzeBarcodeList(json.decode(event)["data"].map((e) => e.toString()).toList());
     });
   }
 
@@ -64,5 +65,26 @@ class DatawedgeService extends DatawedgeServiceInterface {
     } catch (e) {
       print("Error :C : $e");
     }
+  }
+
+  void analyzeBarcodeList(List<dynamic> barcodes) {
+    Map<int, List<String>> matrixOfCodes = {1: [], 2: []};
+    int keysLenght = matrixOfCodes.keys.length;
+    matrixOfCodes = separateListOfCodes(barcodes, keysLenght);
+    print("barcode matrix: $matrixOfCodes");
+  }
+
+  Map<int, List<String>> separateListOfCodes(List<dynamic> listOfCodes, int quantityOfCodes) {
+    Map<int, List<String>> auxMatrix = {};
+    int count = 0;
+
+    for (var barcode in listOfCodes) {
+      if (count == quantityOfCodes) count = 0;
+      if (!auxMatrix.keys.contains(count)) auxMatrix[count] = [];
+      print("$count ${barcode}");
+      auxMatrix[count]!.add(barcode);
+      count++;
+    }
+    return auxMatrix;
   }
 }

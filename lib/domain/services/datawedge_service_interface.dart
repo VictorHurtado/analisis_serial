@@ -4,5 +4,5 @@ abstract class DatawedgeServiceInterface {
   Future<void> createProfile(String profileName);
   void listenScanResult();
   void closeStreamController();
-  Stream<String> get eventOnDatawedge;
+  Stream<Map<int, List<String>>> get eventOnDatawedge;
 }

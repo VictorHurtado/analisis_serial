@@ -1,6 +1,6 @@
 class BarcodeScan {
   String? data;
-  String? symbology;
+  String symbology;
 
-  BarcodeScan({this.data, this.symbology});
+  BarcodeScan({this.data, this.symbology = ''});
 }

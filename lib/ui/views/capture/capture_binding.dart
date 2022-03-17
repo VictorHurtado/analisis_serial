@@ -1,12 +1,13 @@
 import 'package:almaviva_app/data/services/datawedge_service.dart';
-import 'package:almaviva_app/domain/services/datawedge_service_interface.dart';
-import 'package:get/get.dart';
+import 'package:almaviva_app/domain/controllers/controllers.dart';
 
-import '../../../domain/controllers/controllers.dart';
+import 'package:get/get.dart';
 
 class ScanBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => ScanController(datawedgeServiceInterface: DatawedgeService()));
+    Get.lazyPut(() => ScanController(
+          datawedgeServiceInterface: DatawedgeService(),
+        ));
   }
 }
