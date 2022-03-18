@@ -1,7 +1,10 @@
+import 'package:almaviva_app/domain/controllers/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class RadioButtonSettings extends StatefulWidget {
-  const RadioButtonSettings({Key? key}) : super(key: key);
+  final String title;
+  const RadioButtonSettings({Key? key, required this.title}) : super(key: key);
 
   @override
   State<RadioButtonSettings> createState() => _RadioButtonSettingsState();
@@ -10,6 +13,7 @@ class RadioButtonSettings extends StatefulWidget {
 class _RadioButtonSettingsState extends State<RadioButtonSettings> {
   Set<bool> groupValue = {true, false};
   bool selected = true;
+  final _settingsController = Get.find<SettingsController>();
   @override
   Widget build(BuildContext context) {
     return Radio(
@@ -19,8 +23,8 @@ class _RadioButtonSettingsState extends State<RadioButtonSettings> {
       onChanged: (bool? value) {
         setState(() {
           selected = value ?? false;
+          _settingsController.setValueOnSettings(widget.title, value ?? false);
         });
-        print(selected);
       },
     );
   }

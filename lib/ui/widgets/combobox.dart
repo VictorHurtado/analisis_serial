@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../domain/controllers/controllers.dart';
 
 class ComboInputWidget extends StatefulWidget {
-  const ComboInputWidget({Key? key}) : super(key: key);
+  final String title;
+  const ComboInputWidget({Key? key, required this.title}) : super(key: key);
 
   @override
   State<ComboInputWidget> createState() => _ComboInputWidgetState();
 }
 
 class _ComboInputWidgetState extends State<ComboInputWidget> {
+  final _settingsController = Get.find<SettingsController>();
   String selectedItem = "No aplica";
   @override
   Widget build(BuildContext context) {
@@ -47,6 +52,7 @@ class _ComboInputWidgetState extends State<ComboInputWidget> {
             onChanged: (String? value) {
               setState(() {
                 selectedItem = value.toString();
+                _settingsController.setValueOnSettings(widget.title, value.toString());
               });
             },
             hint: Text(selectedItem),

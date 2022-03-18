@@ -43,9 +43,11 @@ class _InputWidgetState extends State<InputWidget> {
       case 'text':
         return TextFormFieldSettings(title: title);
       case 'radio':
-        return RadioButtonSettings();
+        return RadioButtonSettings(title: title);
       case 'dropdown':
-        return ComboInputWidget();
+        return ComboInputWidget(
+          title: title,
+        );
       default:
         return Center(child: Text('Campo no disponible'));
     }

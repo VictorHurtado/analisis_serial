@@ -67,19 +67,37 @@ class DatawedgeService extends DatawedgeServiceInterface {
     }
   }
 
+  Future<void> modifySettings({numberOfCodes, timer, reportInstantly, beamWidth}) async {
+    // context: Context, numberOfBarcodesPerScan: Int, vbReportInstantly: Boolean, timer : Int, Beam_Width:Int
+    try {
+      String argumentAsJson = jsonEncode({
+        "numberOfCodes": numberOfCodes,
+        "timer": timer,
+        "reportInstantly": reportInstantly,
+        "beamWidth": beamWidth
+      });
+
+      var result = await _methodChannel.invokeMethod('setConfigDataWedge', argumentAsJson);
+      print(result);
+    } on PlatformException {
+      //  Error invoking Android method
+    }
+  }
+
   void analyzeBarcodeList(List<dynamic> barcodes) {
-    Map<int, List<String>> matrixOfCodes = {1: [], 2: []};
+    Map<int, List<String>> matrixOfCodes = {1: [], 2: [], 3: [], 4: []};
     int keysLenght = matrixOfCodes.keys.length;
     matrixOfCodes = separateListOfCodes(barcodes, keysLenght);
-    print("barcode matrix: $matrixOfCodes");
+    _streamController.sink.add(matrixOfCodes);
   }
 
   Map<int, List<String>> separateListOfCodes(List<dynamic> listOfCodes, int quantityOfCodes) {
+    print("Cantidad: $quantityOfCodes");
     Map<int, List<String>> auxMatrix = {};
-    int count = 0;
+    int count = 1;
 
     for (var barcode in listOfCodes) {
-      if (count == quantityOfCodes) count = 0;
+      if (count == quantityOfCodes + 1) count = 1;
       if (!auxMatrix.keys.contains(count)) auxMatrix[count] = [];
       print("$count ${barcode}");
       auxMatrix[count]!.add(barcode);

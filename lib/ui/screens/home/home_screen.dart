@@ -26,7 +26,7 @@ class HomeScreen extends GetWidget<HomeController> {
             selectedItemColor: Colors.red,
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
-                label: "Capture",
+                label: "Captura",
                 icon: Icon(
                   Icons.camera_alt,
                   size: 30,

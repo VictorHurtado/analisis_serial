@@ -84,8 +84,7 @@ object DWUtilities {
         barcodeProps.putString("scanner_selection_by_identifier", "INTERNAL_IMAGER")
         barcodeProps.putString("scanner_input_enabled", "true")
         barcodeProps.putString("scanning_mode", "3")
-
-
+        barcodeProps.putString("Beam_Width", "0")
         barcodeConfig.putBundle("PARAM_LIST", barcodeProps)
         profileConfig.putBundle("PLUGIN_CONFIG", barcodeConfig)
         val appConfig = Bundle()
@@ -122,20 +121,22 @@ object DWUtilities {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_SET_CONFIG, profileConfig)
     }
 
-    fun setConfig(context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean) {
+    fun setConfig(context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int)  {
         val profileConfig = Bundle()
         profileConfig.putString("PROFILE_NAME", PROFILE_NAME)
         profileConfig.putString("PROFILE_ENABLED", "true") //  Seems these are all strings
         profileConfig.putString("CONFIG_MODE", "UPDATE")
         val barcodeConfig = Bundle()
         barcodeConfig.putString("PLUGIN_NAME", "BARCODE")
-        barcodeConfig.putString("RESET_CONFIG", "true")
+       barcodeConfig.putString("RESET_CONFIG", "true")
         val barcodeProps = Bundle()
         //  Note: configure_all_scanners does not work here, I guess because not all DW scanners (Camera?) support multi barcode
         barcodeProps.putString("scanner_selection_by_identifier", "INTERNAL_IMAGER")
-        barcodeProps.putString("scanning_mode", "3")
+        barcodeProps.putString("scanning_mode", "3") // 3 es multi barcode
         barcodeProps.putString("picklist","2")
         barcodeProps.putString("aim_type","5")
+        barcodeProps.putString("Beam_Width", Beam_Width.toString())// 0 estrecho 1 normal 2 ancho
+        barcodeProps.putString("aim_timer",timer.toString()) // tiempo de haz de captura
         if (bReportInstantly) barcodeProps.putString(
             "instant_reporting_enable",
             "true"

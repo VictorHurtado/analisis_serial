@@ -1,6 +1,7 @@
 import 'package:almaviva_app/ui/screens/home/home_binding.dart';
 import 'package:almaviva_app/ui/screens/home/home_screen.dart';
 import 'package:almaviva_app/ui/views/capture/capture_binding.dart';
+import 'package:almaviva_app/ui/views/settings/setting_binding.dart';
 import 'package:get/get.dart';
 
 class DWRoutes {
@@ -10,6 +11,8 @@ class DWRoutes {
 class DWPages {
   static final pages = [
     GetPage(
-        name: DWRoutes.home, page: () => HomeScreen(), bindings: [HomeBinding(), ScanBinding()]),
+        name: DWRoutes.home,
+        page: () => HomeScreen(),
+        bindings: [HomeBinding(), ScanBinding(), SettingBinding()]),
   ];
 }

@@ -67,10 +67,21 @@ class MainActivity: FlutterActivity() {
                 val parameter: String = arguments.get("parameter") as String
                 dwUtils.sendCommandString(applicationContext, command, parameter)
 
-            }else
-           if (call.method == "createDataWedgeProfile")
+            }else if (call.method == "setConfigDataWedge")
+            {
+                val arguments = JSONObject(call.arguments.toString())
+                val numberOfCodes: Int = arguments.get("numberOfCodes") as Int
+                val timerH: Int = arguments.get("timer") as Int
+                val reportInstaly: Boolean = arguments.get("reportInstantly") as Boolean
+                val beamWidth: Int = arguments.get("beamWidth") as Int
+                //context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int
+                dwUtils.setConfig(applicationContext,numberOfBarcodesPerScan = numberOfCodes, timer = timerH, bReportInstantly = reportInstaly, Beam_Width = beamWidth)
+                result.success(call.arguments.toString() + " Resultados de llamada " );
+            }else if (call.method == "createDataWedgeProfile")
             {
                 createDataWedgeProfile(call.arguments.toString())
+            }else if(call.method == "version"){
+                result.success(getAndroidVersion());
             }
             else {
                 result.notImplemented()
@@ -81,7 +92,7 @@ class MainActivity: FlutterActivity() {
 
 
     private fun createDataWedgeProfile(profileName: String) {
-        dwUtils.createProfile(applicationContext);
+        dwUtils.createProfile(context.applicationContext);
     }
     private fun createDataWedgeBroadcastReceiver(events: EventChannel.EventSink?): BroadcastReceiver? {
         return object : BroadcastReceiver() {

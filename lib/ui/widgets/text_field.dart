@@ -1,4 +1,6 @@
+import 'package:almaviva_app/domain/controllers/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class TextFormFieldSettings extends StatefulWidget {
   final String title;
@@ -9,6 +11,7 @@ class TextFormFieldSettings extends StatefulWidget {
 }
 
 class _TextFormFieldSettingsState extends State<TextFormFieldSettings> {
+  final _settingsController = Get.find<SettingsController>();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -29,6 +32,16 @@ class _TextFormFieldSettingsState extends State<TextFormFieldSettings> {
         color: Colors.white,
       ),
       child: TextFormField(
+        onSaved: (newValue) {
+          _settingsController.setValueOnSettings(widget.title, newValue);
+        },
+        validator: (value) {
+          if (value == null || value.trim().length == 0 || value == '0') {
+            return 'error campo nulo';
+          }
+
+          return null;
+        },
         decoration: InputDecoration(
             hintText: widget.title,
             errorStyle: const TextStyle(color: Colors.transparent, height: 0),
