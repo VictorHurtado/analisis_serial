@@ -1,20 +1,22 @@
+import 'package:almaviva_app/domain/repositories/local_database_interface.dart';
 import 'package:almaviva_app/domain/services/datawedge_service_interface.dart';
 
 import 'package:get/get.dart';
 
 class SettingsController extends GetxController {
   final DatawedgeServiceInterface datawedgeServiceInterface;
+  final LocalDatabaseInterface databaseInterface;
   var settings = {}.obs;
 
-  SettingsController({required this.datawedgeServiceInterface});
+  SettingsController({required this.datawedgeServiceInterface, required this.databaseInterface});
   @override
   void onInit() {
     super.onInit();
   }
 
   void executeSettingModify() {
-    printSettings();
     if (verifySettings()) {
+      databaseInterface.putValue("settings", "settings", settings);
       datawedgeServiceInterface.modifySettings(
           numberOfCodes: int.parse(settings["Cantidad"]),
           timer: int.parse(settings["Temporizador"]),
@@ -28,8 +30,8 @@ class SettingsController extends GetxController {
   }
 
   bool verifySettings() {
-    if (settings.keys.length < 3) return false;
-    if (settings.values.length < 3) return false;
+    if (settings.keys.length < 4) return false;
+    if (settings.values.length < 4) return false;
     return true;
   }
 
@@ -46,12 +48,13 @@ class SettingsController extends GetxController {
     return 0;
   }
 
-  void printSettings() {
-    for (var key in settings.keys) {
+  void printSettings() async {
+    var settingsFromBox = await databaseInterface.getValueFromKey("settings", "settings");
+    for (var key in settingsFromBox.keys) {
       if (key.contains("Serial")) {
-        print("Serials :  ${settings["Serials"]}");
+        print("Serials :  ${settingsFromBox["Serials"]}");
       } else {
-        print("$key : ${settings[key]}");
+        print("$key : ${settingsFromBox[key]}");
       }
     }
   }
