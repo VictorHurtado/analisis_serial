@@ -11,6 +11,8 @@ class DatawedgeService extends DatawedgeServiceInterface {
   final StreamController<Map<int, List<String>>> _streamController =
       StreamController<Map<int, List<String>>>();
 
+  Map<int, List<String>> matrixOfCodes = {1: [], 2: [], 3: [], 4: []};
+
   @override
   Stream<Map<int, List<String>>> get eventOnDatawedge => _streamController.stream;
 
@@ -67,13 +69,15 @@ class DatawedgeService extends DatawedgeServiceInterface {
     }
   }
 
-  Future<void> modifySettings({numberOfCodes, timer, reportInstantly, beamWidth}) async {
+  @override
+  Future<void> modifySettings({numberOfCodes, timer, reportInstantly, beamWidth, aim_Type}) async {
     // context: Context, numberOfBarcodesPerScan: Int, vbReportInstantly: Boolean, timer : Int, Beam_Width:Int
     try {
       String argumentAsJson = jsonEncode({
         "numberOfCodes": numberOfCodes,
         "timer": timer,
-        "reportInstantly": reportInstantly,
+        "reportInstantly": false,
+        "aim_type": aim_Type,
         "beamWidth": beamWidth
       });
 
@@ -84,8 +88,15 @@ class DatawedgeService extends DatawedgeServiceInterface {
     }
   }
 
+  @override
+  void stablishMatrixOfCodes(int quantity) {
+    matrixOfCodes = {};
+    for (int i = 1; i <= quantity; i++) {
+      matrixOfCodes[i] = [];
+    }
+  }
+
   void analyzeBarcodeList(List<dynamic> barcodes) {
-    Map<int, List<String>> matrixOfCodes = {1: [], 2: [], 3: [], 4: []};
     int keysLenght = matrixOfCodes.keys.length;
     matrixOfCodes = separateListOfCodes(barcodes, keysLenght);
     _streamController.sink.add(matrixOfCodes);

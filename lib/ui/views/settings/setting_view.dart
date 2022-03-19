@@ -27,7 +27,8 @@ class _SettingsViewState extends State<SettingsView> {
               _titleSection(title: "Información del Material"),
               const InputWidget(title: "Cantidad", type: 'text'),
               const InputWidget(title: "Temporizador", type: 'text'),
-              const InputWidget(title: "Reporte", type: 'radio'),
+              const InputWidget(title: "Tipo", type: 'text'),
+              // const InputWidget(title: "Reporte", type: 'radio'),
               // const InputWidget(title: "Grupos", type: 'radio'),
               _titleSection(
                 title: "Configuración de estructura serial",

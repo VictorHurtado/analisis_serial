@@ -72,10 +72,11 @@ class MainActivity: FlutterActivity() {
                 val arguments = JSONObject(call.arguments.toString())
                 val numberOfCodes: Int = arguments.get("numberOfCodes") as Int
                 val timerH: Int = arguments.get("timer") as Int
-                val reportInstaly: Boolean = arguments.get("reportInstantly") as Boolean
+                val reportInstaly: Boolean = false
+                val aim_type:Int = arguments.get("aim_type") as Int
                 val beamWidth: Int = arguments.get("beamWidth") as Int
                 //context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int
-                dwUtils.setConfig(applicationContext,numberOfBarcodesPerScan = numberOfCodes, timer = timerH, bReportInstantly = reportInstaly, Beam_Width = beamWidth)
+                dwUtils.setConfig(applicationContext,numberOfBarcodesPerScan = numberOfCodes, timer = timerH, bReportInstantly = reportInstaly, Beam_Width = beamWidth, Aim_Type = aim_type)
                 result.success(call.arguments.toString() + " Resultados de llamada " );
             }else if (call.method == "createDataWedgeProfile")
             {

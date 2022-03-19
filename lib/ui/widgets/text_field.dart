@@ -12,6 +12,14 @@ class TextFormFieldSettings extends StatefulWidget {
 
 class _TextFormFieldSettingsState extends State<TextFormFieldSettings> {
   final _settingsController = Get.find<SettingsController>();
+  TextEditingController editingController = TextEditingController();
+
+  @override
+  void initState() {
+    editingController.text = _settingsController.settings[widget.title] ?? '';
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,27 +39,30 @@ class _TextFormFieldSettingsState extends State<TextFormFieldSettings> {
         borderRadius: BorderRadius.circular(20),
         color: Colors.white,
       ),
-      child: TextFormField(
-        onSaved: (newValue) {
-          _settingsController.setValueOnSettings(widget.title, newValue);
-        },
-        validator: (value) {
-          if (value == null || value.trim().length == 0 || value == '0') {
-            return 'error campo nulo';
-          }
+      child: Obx(
+        () => TextFormField(
+          controller: editingController,
+          onSaved: (newValue) {
+            _settingsController.setValueOnSettings(widget.title, newValue);
+          },
+          validator: (value) {
+            if (value == null || value.trim().length == 0 || value == '0') {
+              return 'error campo nulo';
+            }
 
-          return null;
-        },
-        decoration: InputDecoration(
-            hintText: widget.title,
-            errorStyle: const TextStyle(color: Colors.transparent, height: 0),
-            errorText: '',
-            isDense: true,
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide.none,
-            )),
+            return null;
+          },
+          decoration: InputDecoration(
+              hintText: _settingsController.settings[widget.title] ?? '',
+              errorStyle: const TextStyle(color: Colors.transparent, height: 0),
+              errorText: '',
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              enabledBorder: const OutlineInputBorder(
+                borderSide: BorderSide.none,
+              )),
+        ),
       ),
     );
   }

@@ -55,7 +55,13 @@ class _ComboInputWidgetState extends State<ComboInputWidget> {
                 _settingsController.setValueOnSettings(widget.title, value.toString());
               });
             },
-            hint: Text(selectedItem),
+            hint: Obx(() {
+              if (_settingsController.settings.isNotEmpty)
+                return _settingsController.settings["Serials"].keys.contains(widget.title)
+                    ? Text(_settingsController.settings["Serials"][widget.title])
+                    : Text("No aplica");
+              return Text("No aplica");
+            }),
           ),
         ),
       ),

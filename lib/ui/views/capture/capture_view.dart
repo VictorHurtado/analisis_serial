@@ -10,48 +10,80 @@ class CaptureView extends GetWidget<ScanController> {
     return Container(
         padding: const EdgeInsets.only(top: 50, left: 50, right: 50),
         height: Get.height - 60,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
           children: [
-            _actionsContainer(),
-            const SizedBox(
-              height: 20,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _actionsContainer(),
+                const SizedBox(
+                  height: 20,
+                ),
+                Expanded(
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      Obx(
+                        () => SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (_scanController.matrixOfCodes.keys.isNotEmpty) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(
+                                    '${list[index]}:',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 15),
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                  ListOfSerials(
+                                      indexOfList:
+                                          _scanController.matrixOfCodes.keys.toList()[index]),
+                                ],
+                              );
+                            } else {
+                              return Text("Listas Vacías");
+                            }
+                          },
+                          childCount: _scanController.matrixOfCodes.keys.length,
+                        )),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 80,
+                ),
+              ],
             ),
-            Expanded(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  Obx(
-                    () => SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (_scanController.matrixOfCodes.keys.isNotEmpty) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                '${list[index]}:',
-                                style: TextStyle(color: Colors.grey, fontSize: 15),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              ListOfSerials(
-                                  indexOfList: _scanController.matrixOfCodes.keys.toList()[index])
-                            ],
-                          );
-                        } else {
-                          return Text("Listas Vacías");
-                        }
-                      },
-                      childCount: _scanController.matrixOfCodes.keys.length,
-                    )),
-                  )
-                ],
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: const EdgeInsets.all(20),
+                width: 300,
+                height: 50,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(50)),
+                  color: Colors.redAccent,
+                ),
+                child: Center(
+                  child: MaterialButton(
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        _scanController.activeSesionScanner();
+                      }),
+                ),
               ),
             ),
           ],
@@ -69,28 +101,8 @@ class CaptureView extends GetWidget<ScanController> {
         Container(
           width: 60,
           height: 60,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-            color: Colors.redAccent,
-          ),
-          child: Center(
-            child: MaterialButton(
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                child: const Icon(
-                  Icons.camera_alt_rounded,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  _scanController.activeSesionScanner();
-                }),
-          ),
-        ),
-        Container(
-          width: 60,
-          height: 60,
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
+            borderRadius: const BorderRadius.all(Radius.circular(50)),
             color: Colors.red.shade600,
           ),
           child: Center(
@@ -98,11 +110,11 @@ class CaptureView extends GetWidget<ScanController> {
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 child: const Icon(
-                  Icons.settings,
+                  Icons.update,
                   color: Colors.white,
                 ),
                 onPressed: () {
-                  _scanController.executeSettingModify();
+                  _scanController.getSettingsOnDB();
                 }),
           ),
         ),

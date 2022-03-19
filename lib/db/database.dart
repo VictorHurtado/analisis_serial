@@ -8,7 +8,7 @@ class DbService extends GetxService {
 
     final appDocumentDirectory = await getApplicationDocumentsDirectory();
     Hive.init(appDocumentDirectory.path);
-
+    Hive.deleteBoxFromDisk('settings');
     Hive.openBox('settings');
 
     print('$runtimeType ready!');

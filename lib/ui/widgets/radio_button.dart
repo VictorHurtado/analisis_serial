@@ -12,10 +12,12 @@ class RadioButtonSettings extends StatefulWidget {
 
 class _RadioButtonSettingsState extends State<RadioButtonSettings> {
   Set<bool> groupValue = {true, false};
-  bool selected = true;
   final _settingsController = Get.find<SettingsController>();
+  bool selected = true;
   @override
   Widget build(BuildContext context) {
+    if (_settingsController.settings.isEmpty)
+      selected = _settingsController.settings[widget.title] ?? true;
     return Radio(
       value: groupValue.first,
       toggleable: true,

@@ -121,7 +121,7 @@ object DWUtilities {
         sendDataWedgeIntentWithExtra(context, ACTION_DATAWEDGE, EXTRA_SET_CONFIG, profileConfig)
     }
 
-    fun setConfig(context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int)  {
+    fun setConfig(context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int, Aim_Type: Int)  {
         val profileConfig = Bundle()
         profileConfig.putString("PROFILE_NAME", PROFILE_NAME)
         profileConfig.putString("PROFILE_ENABLED", "true") //  Seems these are all strings
@@ -135,8 +135,10 @@ object DWUtilities {
         barcodeProps.putString("scanning_mode", "3") // 3 es multi barcode
         barcodeProps.putString("picklist","2")
         barcodeProps.putString("aim_type","5")
+        barcodeProps.putString("beam_timer", timer.toString())
         barcodeProps.putString("Beam_Width", Beam_Width.toString())// 0 estrecho 1 normal 2 ancho
         barcodeProps.putString("aim_timer",timer.toString()) // tiempo de haz de captura
+        barcodeProps.putString("aim_type",Aim_Type.toString())
         if (bReportInstantly) barcodeProps.putString(
             "instant_reporting_enable",
             "true"
