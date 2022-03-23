@@ -25,8 +25,8 @@ class _RadioButtonSettingsState extends State<RadioButtonSettings> {
       onChanged: (bool? value) {
         setState(() {
           selected = value ?? false;
-          _settingsController.setValueOnSettings(widget.title, value ?? false);
         });
+        _settingsController.setValueOnSettings(widget.title, value ?? false);
       },
     );
   }

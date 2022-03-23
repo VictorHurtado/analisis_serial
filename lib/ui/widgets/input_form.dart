@@ -49,7 +49,7 @@ class _InputWidgetState extends State<InputWidget> {
           title: title,
         );
       default:
-        return Center(child: Text('Campo no disponible'));
+        return const Center(child: Text('Campo no disponible'));
     }
   }
 }

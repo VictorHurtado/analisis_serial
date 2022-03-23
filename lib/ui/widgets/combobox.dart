@@ -56,10 +56,12 @@ class _ComboInputWidgetState extends State<ComboInputWidget> {
               });
             },
             hint: Obx(() {
-              if (_settingsController.settings.isNotEmpty)
+              if (_settingsController.settings.keys.contains("Serials") &&
+                  _settingsController.settings.keys.isNotEmpty) {
                 return _settingsController.settings["Serials"].keys.contains(widget.title)
                     ? Text(_settingsController.settings["Serials"][widget.title])
                     : Text("No aplica");
+              }
               return Text("No aplica");
             }),
           ),

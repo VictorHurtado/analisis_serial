@@ -9,7 +9,7 @@ class LocalDatabaseService extends LocalDatabaseInterface {
     var settingsBox = Hive.box(box);
     try {
       String saveString = json.encode(value);
-      print("$key - $saveString");
+
       settingsBox.put(key, saveString);
       return true;
     } catch (e) {

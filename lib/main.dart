@@ -13,12 +13,7 @@ void main() async {
 }
 
 void initServices() async {
-  print('starting services ...');
-
-  /// Here is where you put get_storage, hive, shared_pref initialization.
-  /// or moor connection, or whatever that's async.
   await Get.putAsync(() => DbService().init());
-  print('All services started...');
 }
 
 class MyApp extends StatelessWidget {

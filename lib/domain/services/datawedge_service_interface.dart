@@ -5,6 +5,10 @@ abstract class DatawedgeServiceInterface {
   void listenScanResult();
   void closeStreamController();
   Stream<Map<int, List<String>>> get eventOnDatawedge;
-  Future<void> modifySettings({numberOfCodes, timer, reportInstantly, beamWidth, aim_Type});
-  void stablishMatrixOfCodes(int quantity);
+  Stream<List<String>> get eventListOnDatawedge;
+
+  Future<void> modifySettings({numberOfCodes, timer, reportInstantly, beamWidth, aimType});
+  void stablishMatrixOfCodes(Map<String, String> matrixReference);
+  void stablishTotalQuantity(int quantity);
+  void resetReportInstantlyVariables();
 }

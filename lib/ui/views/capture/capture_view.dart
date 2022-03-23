@@ -1,5 +1,6 @@
 import 'package:almaviva_app/domain/controllers/scan/scan_controller.dart';
 import 'package:almaviva_app/ui/widgets/list_serials.dart';
+import 'package:almaviva_app/ui/widgets/tile_barcode_captured.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,20 +13,40 @@ class CaptureView extends GetWidget<ScanController> {
         height: Get.height - 60,
         child: Stack(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _actionsContainer(),
-                const SizedBox(
-                  height: 20,
-                ),
-                Expanded(
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      Obx(
-                        () => SliverList(
+            Obx(
+              () => Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _actionsContainer(),
+                  Expanded(
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              print("evento de lista: ${_scanController.listOfCodes}");
+                              var item = TileBarcodeCaptured(
+                                  title:
+                                      "${_scanController.listOfCodes.length - index}. ${_scanController.listOfCodes[index]}");
+                              return item;
+                            },
+                            childCount: _scanController.listOfCodes.length,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: Colors.grey,
+                    height: 2,
+                  ),
+                  Expanded(
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        SliverList(
                             delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             if (_scanController.matrixOfCodes.keys.isNotEmpty) {
@@ -36,7 +57,9 @@ class CaptureView extends GetWidget<ScanController> {
                                     height: 10,
                                   ),
                                   Text(
-                                    '${list[index]}:',
+                                    _scanController.matrixOfCodes.keys.elementAt(index) <= 16
+                                        ? '${list[_scanController.matrixOfCodes.keys.elementAt(index)]}:'
+                                        : "Escaneado",
                                     style: const TextStyle(color: Colors.grey, fontSize: 15),
                                   ),
                                   const SizedBox(
@@ -53,14 +76,14 @@ class CaptureView extends GetWidget<ScanController> {
                           },
                           childCount: _scanController.matrixOfCodes.keys.length,
                         )),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 80,
-                ),
-              ],
+                  const SizedBox(
+                    height: 80,
+                  ),
+                ],
+              ),
             ),
             Align(
               alignment: Alignment.bottomCenter,
@@ -91,6 +114,7 @@ class CaptureView extends GetWidget<ScanController> {
   }
 
   Widget _actionsContainer() {
+    TextEditingController editingController = TextEditingController();
     return Row(
       children: [
         const Text(
@@ -113,8 +137,16 @@ class CaptureView extends GetWidget<ScanController> {
                   Icons.update,
                   color: Colors.white,
                 ),
-                onPressed: () {
-                  _scanController.getSettingsOnDB();
+                onPressed: () async {
+                  Get.defaultDialog(
+                    title: "Configuración Aplicada",
+                    content: TextField(
+                      controller: editingController..text = await _scanController.getSettingsOnDB(),
+                    ),
+                    contentPadding: const EdgeInsets.all(30),
+                    titleStyle: const TextStyle(color: Colors.redAccent, fontSize: 17),
+                    titlePadding: const EdgeInsets.all(30),
+                  );
                 }),
           ),
         ),

@@ -72,7 +72,7 @@ class MainActivity: FlutterActivity() {
                 val arguments = JSONObject(call.arguments.toString())
                 val numberOfCodes: Int = arguments.get("numberOfCodes") as Int
                 val timerH: Int = arguments.get("timer") as Int
-                val reportInstaly: Boolean = false
+                val reportInstaly: Boolean = arguments.get("reportInstantly") as Boolean
                 val aim_type:Int = arguments.get("aim_type") as Int
                 val beamWidth: Int = arguments.get("beamWidth") as Int
                 //context: Context, numberOfBarcodesPerScan: Int, bReportInstantly: Boolean, timer : Int, Beam_Width:Int

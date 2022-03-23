@@ -16,7 +16,7 @@ class ListOfSerials extends GetWidget<ScanController> {
           physics: const ClampingScrollPhysics(),
           shrinkWrap: true,
           padding: const EdgeInsets.all(0),
-          itemCount: scanController.matrixOfCodes[indexOfList]!.length,
+          itemCount: scanController.matrixOfCodes[indexOfList].length,
           itemBuilder: (context, index) {
             var item = TileBarcodeCaptured(
                 title:

@@ -22,13 +22,13 @@ class SettingsController extends GetxController {
   void executeSettingModify() {
     if (verifySettings()) {
       // printSettings();
-      print("AQUIIIII $settings");
+
       databaseInterface.putValue("settings", "settings", settings);
       datawedgeServiceInterface.modifySettings(
           numberOfCodes: int.parse(settings["Cantidad"]),
           timer: int.parse(settings["Temporizador"]),
           reportInstantly: settings["Reporte"],
-          aim_Type: int.parse(settings["Tipo"]),
+          aimType: int.parse(settings["Tipo"]),
           beamWidth: 0);
     }
   }
@@ -51,7 +51,6 @@ class SettingsController extends GetxController {
 
     if (!settings.keys.contains("Serials")) settings["Serials"] = {};
     if (value == "No aplica") {
-      print("entre");
       settings["Serials"].remove(key);
       return 0;
     }

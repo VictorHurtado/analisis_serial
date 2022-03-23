@@ -7,6 +7,8 @@ class ScanController extends GetxController {
   final DatawedgeServiceInterface datawedgeServiceInterface;
   final LocalDatabaseInterface databaseInterface;
   var matrixOfCodes = {}.obs;
+  var reportInstantly = false.obs;
+  var listOfCodes = [].obs;
 
   ScanController({required this.datawedgeServiceInterface, required this.databaseInterface});
   @override
@@ -16,17 +18,22 @@ class ScanController extends GetxController {
     datawedgeServiceInterface.eventOnDatawedge.listen((event) {
       print("evento: $event");
       matrixOfCodes.value = event;
-      print(matrixOfCodes.values.length);
+    });
+    datawedgeServiceInterface.eventListOnDatawedge.listen((event) {
+      listOfCodes.add(event.last);
     });
     super.onInit();
   }
 
-  void getSettingsOnDB() async {
+  Future<String> getSettingsOnDB() async {
     var settings = await databaseInterface.getValueFromKey("settings", "settings");
     if (settings.keys.isNotEmpty) {
-      datawedgeServiceInterface.stablishMatrixOfCodes(settings["Serials"].length);
-      print("Settings quantity: ${settings} ");
+      datawedgeServiceInterface
+          .stablishMatrixOfCodes(Map<String, String>.from(settings["Serials"]));
+      datawedgeServiceInterface.stablishTotalQuantity(int.parse(settings["Cantidad"]));
     }
+    return settings.toString();
+    // ignore: curly_braces_in_flow_control_structures
   }
 
   void printVersion() {
@@ -38,6 +45,7 @@ class ScanController extends GetxController {
   }
 
   void activeSesionScanner() {
+    listOfCodes.clear();
     datawedgeServiceInterface.activeSessionScanner();
   }
 
